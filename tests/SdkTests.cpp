@@ -916,12 +916,18 @@ private:
             const auto* c = find(reports[id], check);
             expect(c != nullptr && c->status == sdk::check::Status::Fail, std::string(id) + " should fail " + check);
         };
+#if CRUCIBLE_ALLOC_COUNTER_AVAILABLE
         failedCheck("test.allocates", "allocation");
+#else
+        logMessage("allocation counter unavailable under a sanitizer on this platform: allocation check not exercised");
+#endif
         failedCheck("test.nan", "finite");
         failedCheck("test.loud", "extremes");
         failedCheck("test.drifts", "determinism");
         // Only the broken rule fails: everything else about these modules is fine.
+#if CRUCIBLE_ALLOC_COUNTER_AVAILABLE
         expectEquals(reports["test.allocates"].failures(), 1, failedText(reports["test.allocates"]));
+#endif
         expectEquals(reports["test.nan"].failures(), 1, failedText(reports["test.nan"]));
         expectEquals(reports["test.loud"].failures(), 1, failedText(reports["test.loud"]));
         expectEquals(reports["test.drifts"].failures(), 1, failedText(reports["test.drifts"]));

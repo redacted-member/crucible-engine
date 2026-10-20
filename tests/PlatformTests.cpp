@@ -26,6 +26,7 @@ thread_local long gAllocations = 0;
 using crucible::testing::gAllocations;
 using crucible::testing::gTrackAllocations;
 
+#if CRUCIBLE_ALLOC_COUNTER_AVAILABLE
 void* operator new(std::size_t n)
 {
     if (gTrackAllocations)
@@ -58,6 +59,7 @@ void operator delete[](void* p, std::size_t) noexcept
 {
     std::free(p);
 }
+#endif
 
 using namespace crucible;
 using namespace crucible::testing;

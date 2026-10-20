@@ -15,9 +15,11 @@
 #include <crucible/Patch.h>
 #include <crucible/crucible.h>
 
+#include "AllocCounterConfig.h"
 #include "TestSupport.h"
 
 #include <chrono>
+#include <cctype>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -38,6 +40,7 @@ thread_local bool gTrackAllocations = false;
 thread_local long gAllocations = 0;
 } // namespace
 
+#if CRUCIBLE_ALLOC_COUNTER_AVAILABLE
 void* operator new(std::size_t n)
 {
     if (gTrackAllocations)
@@ -70,6 +73,7 @@ void operator delete[](void* p, std::size_t) noexcept
 {
     std::free(p);
 }
+#endif
 
 using namespace crucible;
 using namespace crucible::testing;

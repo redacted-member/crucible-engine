@@ -22,6 +22,19 @@
 #include <string>
 #include <vector>
 
+// The static AddressSanitizer / ThreadSanitizer runtimes on Linux define operator new / delete themselves; replacing
+// them here would be a duplicate symbol, so the counter stays at zero in those builds.
+#if defined(__linux__) && (defined(__SANITIZE_ADDRESS__) || defined(__SANITIZE_THREAD__))
+#define CRUCIBLE_CHECK_COUNT_ALLOCATIONS 0
+#elif defined(__linux__) && defined(__has_feature)
+#if __has_feature(address_sanitizer) || __has_feature(thread_sanitizer)
+#define CRUCIBLE_CHECK_COUNT_ALLOCATIONS 0
+#endif
+#endif
+#ifndef CRUCIBLE_CHECK_COUNT_ALLOCATIONS
+#define CRUCIBLE_CHECK_COUNT_ALLOCATIONS 1
+#endif
+
 // Counts the allocations of the calling thread while tracking is on: the harness switches it on around the audio calls.
 namespace
 {
@@ -29,6 +42,7 @@ thread_local bool gTrack = false;
 thread_local long gCount = 0;
 } // namespace
 
+#if CRUCIBLE_CHECK_COUNT_ALLOCATIONS
 void* operator new(std::size_t n)
 {
     if (gTrack)
@@ -61,6 +75,7 @@ void operator delete[](void* p, std::size_t) noexcept
 {
     std::free(p);
 }
+#endif
 
 namespace
 {
