@@ -13,7 +13,9 @@ Code that is not ours lives under `third_party/<name>/` with its licence file. O
 | libebur128 (Jan Kokemueller) | MIT (`queue.h`: BSD-3-Clause) | `third_party/libebur128/` | tests only: `tests/LoudnessTests.cpp` checks `crucible/fx/Loudness.h` against it | https://github.com/jiixyj/libebur128 at `67b33abe1558160ed76ada1322329b0e9e058b02` (v1.2.6; `ebur128.{c,h}`, `queue/sys/queue.h`) |
 | FFTConvolver (HiFi-LoFi) | MIT (`third_party/fftconvolver/LICENSE.txt`) | `third_party/fftconvolver/` | `fx/PartitionedConvolver.h` (`NonUniformConvolver`): the split-complex buffer and multiply-accumulate helpers (`Utilities.{h,cpp}`) and the `AudioFFT` interface (`AudioFFT.h`), which `src/fx/AudioFftAdapter.cpp` implements on `crucible::Fft`; the bundled Ooura / FFTW / Accelerate FFT (`AudioFFT.cpp`) is not vendored or compiled | https://github.com/HiFi-LoFi/FFTConvolver at `f2cdeb04c42141d2caec19ca4f137398b2a76b85` (`AudioFFT.h`, `Utilities.{h,cpp}`, `COPYING.txt` as `LICENSE.txt`) |
 
-Vendored files are unmodified copies of the files listed in the last column (only the files the build uses). The Mutable
+Vendored files are unmodified copies of the files listed in the last column (only the files the build uses), with one
+exception: `third_party/fftconvolver/Utilities.h` skips its zero-length `memcpy` / `memset` calls (marked `crucible:`),
+because an empty buffer holds a null pointer and glibc declares those arguments non-null (UBSan flags it). The Mutable
 Instruments name is a trademark of its owner: this repository names its module "Modal" and credits the Rings and Elements
 designs in the source and here, as the upstream guidelines ask.
 
