@@ -6,6 +6,7 @@
 #include <crucible/Fft.h>
 
 #include <algorithm>
+#include <cstddef>
 #include <cstring>
 #include <vector>
 

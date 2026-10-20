@@ -4,6 +4,7 @@
 // Minimal JSON value, parser and writer (UTF-8 passed through, \uXXXX escapes decoded to UTF-8). Used for patch
 // files and tool output; not for the audio thread.
 
+#include <cstddef>
 #include <cstdint>
 #include <map>
 #include <string>

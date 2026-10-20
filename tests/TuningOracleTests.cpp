@@ -10,6 +10,7 @@
 
 #include <Tunings.h>
 
+#include <algorithm>
 #include <cmath>
 #include <cstdint>
 #include <sstream>
