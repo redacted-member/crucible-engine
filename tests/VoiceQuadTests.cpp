@@ -558,7 +558,7 @@ public:
                 logMessage(String("model ") + String(row.model) + ": " + String(lane) + " % per lane, plan target " +
                            String(row.target) + " %");
                 expectCpu(lane <= row.target * 1.2,
-                       String("model ") + String(row.model) + " costs " + String(lane) + " % per lane");
+                          String("model ") + String(row.model) + " costs " + String(lane) + " % per lane");
             }
 #endif
         }

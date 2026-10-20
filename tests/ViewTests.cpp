@@ -730,7 +730,7 @@ public:
             logMessage("render " + std::to_string(base) + " us per 256-sample block; with " + std::to_string(live) +
                        " live views at 60 Hz " + std::to_string(all) + " us");
             expectCpu(kSanitised || all < base * 1.5 + 5.0,
-                   "views at 60 Hz stay cheap: " + String(all, 2) + " vs " + String(base, 2) + " us");
+                      "views at 60 Hz stay cheap: " + String(all, 2) + " vs " + String(base, 2) + " us");
         }
     }
 };

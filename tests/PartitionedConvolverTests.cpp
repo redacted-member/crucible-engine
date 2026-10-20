@@ -255,7 +255,7 @@ public:
                 const double spread = peak / mean;
                 std::cout << "  " << mode.name << ": " << percent << " % of one core, per-block max/mean " << spread << "\n";
                 expectCpu(percent <= mode.limit,
-                       String(mode.name) + " CPU " + String(percent, 3) + " % over " + String(mode.limit));
+                          String(mode.name) + " CPU " + String(percent, 3) + " % over " + String(mode.limit));
                 expectCpu(spread <= 2.0, String(mode.name) + " per-block spread " + String(spread, 2));
             }
         }
