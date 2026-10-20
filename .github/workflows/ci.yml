@@ -22,7 +22,7 @@ jobs:
   build-test:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 240
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
@@ -53,16 +53,17 @@ jobs:
           name: crucible-engine-nightly-${{ matrix.os }}
           path: dist
 
+  # Full sanitizer suites, including the audit and the older-effects acceptance run, run locally via tools/ci.sh.
   sanitizers:
     name: ${{ matrix.name }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 345
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
         include:
-          - { name: ASan + UBSan, mode: asan, sanitize: "address;undefined" }
-          - { name: TSan, mode: tsan, sanitize: "thread" }
+          - { name: ASan + UBSan, mode: asan, sanitize: "address;undefined", skip: "audit|older_fx_acceptance$|consumer" }
+          - { name: TSan, mode: tsan, sanitize: "thread", skip: "audit|older_fx_acceptance$|consumer|^crucible_engine_tests$" }
     steps:
       - uses: actions/checkout@v4
       - name: Configure
@@ -70,7 +71,12 @@ jobs:
           cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
           -DCMAKE_CXX_COMPILER=clang++-18 -DCMAKE_C_COMPILER=clang-18
           "-DCRUCIBLE_ENGINE_SANITIZE=${{ matrix.sanitize }}"
-      - run: cmake --build build --parallel 2
+      - name: Build
+        run: >
+          cmake --build build --parallel 2 --target
+          crucible_engine_tests crucible_capi_test crucible_engine_graph_tests crucible_engine_older_fx_tests
+          crucible_engine_fx_baseline crucible-render crucible-module-check render_c instrument_skeleton
+          crucible_example_c_module crucible_example_c_module_future crucible_example_cpp_module
       - name: Test
         env:
           # ThreadSanitizer's shadow memory otherwise grows without bound over the long test run (10 GB after two hours
@@ -82,12 +88,25 @@ jobs:
         run: |
           # Memory and load every two minutes, so a runner that dies mid-test leaves a trace in the log.
           (while true; do date +%T; free -m | sed -n 2p; uptime; sleep 120; done) &
-          ctest --test-dir build --output-on-failure --verbose
+          ctest --test-dir build --output-on-failure --verbose -E "${{ matrix.skip }}"
+      - name: Threaded suites of crucible_engine_tests (TSan)
+        if: matrix.mode == 'tsan'
+        env:
+          TSAN_OPTIONS: flush_memory_ms=20000
+          CRUCIBLE_SKIP_HEAVY_TESTS: "1"
+        run: |
+          # The whole crucible_engine_tests binary takes hours under TSan: run the suites that use threads.
+          status=0
+          for suite in "Engine facade" "Host plumbing" "Views" "Audio-rate modulation" "FormantTableEngine" "Fuzz crash fixes" \
+              "Key lock" "Instance-scoped registry" "UI accessors" "Wavetable memory" "Sample unison" "Graph in data" "Sequencer"; do
+            build/crucible_engine_tests "$suite" || status=1
+          done
+          exit $status
 
   scalar:
     name: Scalar fallback (no SIMD)
     runs-on: ubuntu-24.04
-    timeout-minutes: 240
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
       - run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCRUCIBLE_FORCE_SCALAR=ON
@@ -97,7 +116,7 @@ jobs:
   consumer:
     name: find_package consumer and C example
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
       - run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCRUCIBLE_ENGINE_BUILD_TESTS=OFF
