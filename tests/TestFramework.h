@@ -102,6 +102,19 @@ public:
         return skipped;
     }
 
+    // True when CRUCIBLE_SKIP_HEAVY_TESTS is set (to anything but "" or "0"). A few tests build tables of more than a
+    // million frames and need about 12 GB; with a sanitizer's shadow memory on top that exceeds a 16 GB CI runner, so
+    // the sanitizer jobs of .github/workflows/ci.yml skip them (the plain builds of the same runners run them).
+    static bool heavyChecksSkipped()
+    {
+        static const bool skipped = []
+        {
+            const char* v = std::getenv("CRUCIBLE_SKIP_HEAVY_TESTS");
+            return v != nullptr && v[0] != '\0' && !(v[0] == '0' && v[1] == '\0');
+        }();
+        return skipped;
+    }
+
     const std::string& getName() const { return name; }
     int failureCount() const { return failures; }
     int passCount() const { return passes; }

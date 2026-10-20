@@ -61,6 +61,10 @@ for the hosted runners.
 CRUCIBLE_SKIP_CPU_TESTS=1 ctest --test-dir build --output-on-failure
 ```
 
+One test (a zoned wavetable of more than 2^20 frames) needs about 12 GB. `CRUCIBLE_SKIP_HEAVY_TESTS=1` skips it; the
+sanitizer jobs of the CI workflow set it, because the sanitizer's shadow memory pushes it past the 16 GB of a hosted
+runner.
+
 Sanitizer builds on Linux (AddressSanitizer / ThreadSanitizer) link a runtime that defines `operator new` itself, so the
 allocation counter of the tests is not compiled there and the "no allocation on the audio thread" checks are vacuous in
 those builds; the Release and scalar builds carry them.

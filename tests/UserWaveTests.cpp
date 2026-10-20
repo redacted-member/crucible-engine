@@ -447,6 +447,9 @@ public:
         }
 
         beginTest("a zoned table with more than 2^20 frames in a zone saves and reloads (load and unpack limits agree)");
+        if (heavyChecksSkipped())
+            logMessage("skipped (CRUCIBLE_SKIP_HEAVY_TESTS): needs about 12 GB");
+        else
         {
             const int many = (1 << 20) + 5;
             std::vector<WavetableZone> big(2);

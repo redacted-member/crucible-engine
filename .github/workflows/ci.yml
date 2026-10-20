@@ -76,6 +76,9 @@ jobs:
           # ThreadSanitizer's shadow memory otherwise grows without bound over the long test run (10 GB after two hours
           # locally), which exhausts the 16 GB runner and kills it.
           TSAN_OPTIONS: flush_memory_ms=20000
+          # One test builds a table of over a million frames (about 12 GB); with the sanitizer's shadow memory it
+          # exceeds the runner, so the sanitizer jobs skip it. The plain builds run it.
+          CRUCIBLE_SKIP_HEAVY_TESTS: "1"
         run: |
           # Memory and load every two minutes, so a runner that dies mid-test leaves a trace in the log.
           (while true; do date +%T; free -m | sed -n 2p; uptime; sleep 120; done) &
