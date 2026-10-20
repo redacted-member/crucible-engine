@@ -71,7 +71,11 @@ jobs:
           -DCMAKE_CXX_COMPILER=clang++-18 -DCMAKE_C_COMPILER=clang-18
           "-DCRUCIBLE_ENGINE_SANITIZE=${{ matrix.sanitize }}"
       - run: cmake --build build --parallel 2
-      - run: ctest --test-dir build --output-on-failure
+      - name: Test
+        run: |
+          # Memory and load every two minutes, so a runner that dies mid-test leaves a trace in the log.
+          (while true; do date +%T; free -m | sed -n 2p; uptime; sleep 120; done) &
+          ctest --test-dir build --output-on-failure --verbose
 
   scalar:
     name: Scalar fallback (no SIMD)
