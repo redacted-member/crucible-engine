@@ -205,6 +205,7 @@ sdk::check::Options quickOptions()
     o.seconds = 0.25;
     o.corners = 4;
     o.enforceCpu = false;
+    o.enforceDenormalTime = !crucible::test::UnitTest::cpuChecksSkipped();
     o.probe.track = [](bool on)
     {
         gTrackAllocations = on;

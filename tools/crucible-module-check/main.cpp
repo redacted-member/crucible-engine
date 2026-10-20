@@ -183,6 +183,13 @@ int main(int argc, char** argv)
         usage();
         return 2;
     }
+    // CRUCIBLE_SKIP_CPU_TESTS (see CONTRIBUTING.md): on a shared machine the timing-based checks are reported, not enforced.
+    if (const char* skip = std::getenv("CRUCIBLE_SKIP_CPU_TESTS");
+        skip != nullptr && skip[0] != '\0' && std::strcmp(skip, "0") != 0)
+    {
+        options.enforceCpu = false;
+        options.enforceDenormalTime = false;
+    }
     if (options.seconds <= 0.0 || options.blockSize < 1 || options.sampleRate < 8000.0)
     {
         std::fprintf(stderr, "crucible-module-check: seconds, block and rate must be positive (rate at least 8000)\n");

@@ -53,7 +53,8 @@ Run the sanitizer builds before you open a pull request that touches threading, 
 Many tests check a CPU budget ("percent of one core") or a timing ratio. They need a quiet machine and are enforced by
 default, in `tools/ci.sh` too. On a shared machine (the hosted GitHub Actions runners, a busy laptop) set
 `CRUCIBLE_SKIP_CPU_TESTS=1`: every CPU-budget or timing expectation is then logged as `skipped CPU check ... would
-pass` or `would fail` and never fails the run; all other expectations are unchanged. `.github/workflows/ci.yml` sets it
+pass` or `would fail` and never fails the run; all other expectations are unchanged. `crucible-module-check` honours the
+same variable: it then reports, but does not enforce, the CPU budget and the denormal-tail slowdown. `.github/workflows/ci.yml` sets it
 for the hosted runners.
 
 ```sh

@@ -731,7 +731,11 @@ CheckResult checkDenormals(const Subject& s, const Options& o)
     if (diff > 1.0e-9)
         return failed("denormals", "the output depends on flush-to-zero: " + info);
     if (slowdown > 50.0 && tOpen - tFlushed > 0.05)
-        return failed("denormals", "a decaying tail runs " + fmt(slowdown, 2) + "x slower with denormals enabled");
+    {
+        if (o.enforceDenormalTime)
+            return failed("denormals", "a decaying tail runs " + fmt(slowdown, 2) + "x slower with denormals enabled");
+        return pass("denormals", info + " (slow tail not enforced)");
+    }
     return pass("denormals", info);
 }
 

@@ -45,6 +45,7 @@ struct Options
     double maxPeak = 100.0; // bound of the extremes check (+40 dBFS)
     int corners = 12;       // seeded random corners of the parameter space
     bool enforceCpu = true; // false: the CPU load is reported but never fails
+    bool enforceDenormalTime = true; // false: a slow denormal tail is reported in the detail but never fails
     double cpuLight = 0.04; // budgets, as a fraction of real time on one core
     double cpuMedium = 0.10;
     double cpuHeavy = 0.40;
