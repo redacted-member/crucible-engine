@@ -1,0 +1,16 @@
+// SPDX-License-Identifier: MIT
+// Generated from project(CrucibleEngine VERSION @PROJECT_VERSION@) by CMake. Do not edit.
+#pragma once
+
+#define CRUCIBLE_VERSION_MAJOR @CrucibleEngine_VERSION_MAJOR@
+#define CRUCIBLE_VERSION_MINOR @CrucibleEngine_VERSION_MINOR@
+#define CRUCIBLE_VERSION_PATCH @CrucibleEngine_VERSION_PATCH@
+#define CRUCIBLE_VERSION_STRING "@CrucibleEngine_VERSION@"
+
+namespace crucible
+{
+
+// The version of the library that is linked (compare with CRUCIBLE_VERSION_STRING to detect a header/library mismatch).
+const char* versionString() noexcept;
+
+} // namespace crucible

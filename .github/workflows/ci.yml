@@ -1,0 +1,105 @@
+# SPDX-License-Identifier: MIT
+name: CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+  # Nightly run (off for now):
+  # schedule:
+  #   - cron: "17 3 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: macOS arm64 (Apple clang), os: macos-14, cc: clang, cxx: clang++ }
+          - { name: Ubuntu gcc, os: ubuntu-24.04, cc: gcc-13, cxx: g++-13 }
+          - { name: Ubuntu clang, os: ubuntu-24.04, cc: clang-18, cxx: clang++-18 }
+          - { name: Windows MSVC, os: windows-2022, cc: cl, cxx: cl }
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        shell: bash
+        env:
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+      - name: Build
+        run: cmake --build build --config Release --parallel
+      - name: Test
+        run: ctest --test-dir build -C Release --output-on-failure
+      - name: Package nightly artifact
+        if: github.event_name == 'schedule'
+        shell: bash
+        run: cmake --install build --config Release --prefix dist
+      - uses: actions/upload-artifact@v4
+        if: github.event_name == 'schedule'
+        with:
+          name: crucible-engine-nightly-${{ matrix.os }}
+          path: dist
+
+  sanitizers:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: ASan + UBSan, mode: asan, sanitize: "address;undefined" }
+          - { name: TSan, mode: tsan, sanitize: "thread" }
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: >
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
+          -DCMAKE_CXX_COMPILER=clang++-18 -DCMAKE_C_COMPILER=clang-18
+          "-DCRUCIBLE_ENGINE_SANITIZE=${{ matrix.sanitize }}"
+      - run: cmake --build build --parallel
+      - run: ctest --test-dir build --output-on-failure
+
+  scalar:
+    name: Scalar fallback (no SIMD)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCRUCIBLE_FORCE_SCALAR=ON
+      - run: cmake --build build --parallel
+      - run: ctest --test-dir build --output-on-failure
+
+  consumer:
+    name: find_package consumer and C example
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCRUCIBLE_ENGINE_BUILD_TESTS=OFF
+      - run: cmake --build build --parallel
+      - run: tools/test-consumer.sh build
+      - name: C API example renders a non-silent WAV
+        run: |
+          build/render_c "$RUNNER_TEMP/demo.wav"
+          test "$(wc -c < "$RUNNER_TEMP/demo.wav")" -gt 100000
+
+  checks:
+    name: clang-format and SPDX
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: SPDX headers
+        run: tools/check-spdx.sh
+      - name: clang-format (changed lines only)
+        run: |
+          sudo apt-get update && sudo apt-get install -y clang-format-18
+          base=$(git merge-base origin/main HEAD 2>/dev/null || git rev-parse HEAD~1)
+          diff=$(git diff -U0 --no-color "$base" -- '*.cpp' '*.h' '*.c' | clang-format-diff-18 -p1 || true)
+          if [ -n "$diff" ]; then echo "$diff"; echo "Run clang-format on the lines above."; exit 1; fi

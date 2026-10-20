@@ -1,0 +1,4 @@
+# SPDX-License-Identifier: MIT
+third_party/** linguist-vendored
+docs/FEATURE-AUDIT.md linguist-generated
+docs/PARAMETERS.md linguist-generated

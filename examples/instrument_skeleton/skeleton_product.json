@@ -1,0 +1,39 @@
+{
+  "format": "crucible-product",
+  "version": 1,
+  "id": "skeleton.poly",
+  "name": "Skeleton Poly",
+  "description": "Instrument skeleton: the classic voice with 2 oscillators and one filter, a short effects chain of current modules, and a host surface of 15 parameters on 4 pages.",
+  "layout": { "oscillators": 2, "filters": 1, "macros": 2 },
+  "voice": "classic",
+  "fx": {
+    "instances": [
+      { "id": "drive", "type": "fx.saturator" },
+      { "id": "delay", "type": "fx.delay_pro" },
+      { "id": "reverb", "type": "fx.reverb_algo" },
+      { "id": "conv", "type": "fx.convolution" },
+      { "id": "limiter", "type": "fx.limiter" }
+    ],
+    "lanes": [
+      {
+        "id": "main",
+        "order": "listed",
+        "input": ["voices"],
+        "chain": ["drive", "delay", "reverb", "conv", "limiter"]
+      }
+    ]
+  },
+  "surface": {
+    "expose": "listed",
+    "sections": [
+      { "id": "sound", "name": "Sound" },
+      { "id": "fx", "name": "Effects" }
+    ],
+    "pages": [
+      { "id": "osc", "name": "Oscillators", "section": "sound", "params": ["osc1_type", "osc1_level", "osc2_type", "osc2_level", "osc2_semi"] },
+      { "id": "filter", "name": "Filter", "section": "sound", "params": ["filter_cutoff", "filter_res", "filter_env"] },
+      { "id": "amp", "name": "Amp", "section": "sound", "params": ["amp_attack", "amp_decay", "amp_sustain", "amp_release", "master_gain"] },
+      { "id": "fx", "name": "Effects", "section": "fx", "params": ["fx_delay_pro_mix", "fx_cx_mix"] }
+    ]
+  }
+}

@@ -1,0 +1,41 @@
+/* SPDX-License-Identifier: MIT */
+body {
+    font-family: system-ui, sans-serif;
+    background: #15171a;
+    color: #e8e8e8;
+    margin: 0;
+}
+main {
+    max-width: 36rem;
+    margin: 3rem auto;
+    padding: 0 1rem;
+}
+button {
+    font: inherit;
+    padding: 0.5rem 1.25rem;
+    background: #e8e8e8;
+    color: #15171a;
+    border: 0;
+    border-radius: 4px;
+    cursor: pointer;
+}
+button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+button:focus-visible {
+    outline: 3px solid #6cb4ff;
+    outline-offset: 2px;
+}
+#meter {
+    height: 1rem;
+    background: #2b2f36;
+    border-radius: 4px;
+    overflow: hidden;
+}
+#meter-bar {
+    --level: 0%;
+    height: 100%;
+    width: var(--level);
+    background: #5fd38d;
+}

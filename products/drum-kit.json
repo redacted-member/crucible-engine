@@ -1,0 +1,303 @@
+{
+  "format": "crucible-product",
+  "version": 1,
+  "id": "crucible.drum-kit-test",
+  "name": "Drum Kit (test product)",
+  "description": "Four layers on four notes, each with its own small graph; the hats share a choke group. A test product for the graph executor, not an instrument.",
+  "voice": {
+    "layers": [
+      {
+        "id": "kick",
+        "notes": [
+          36,
+          36
+        ],
+        "velocity": [
+          1,
+          127
+        ],
+        "voices": 2,
+        "oneShot": true,
+        "nodes": [
+          {
+            "id": "kick_osc",
+            "type": "osc.sub",
+            "slot": 1
+          },
+          {
+            "id": "kick_env",
+            "type": "env.adsr",
+            "params": {
+              "attack": 0.001,
+              "decay": 0.35,
+              "sustain": 0.0,
+              "release": 0.05,
+              "curve": -0.6
+            }
+          },
+          {
+            "id": "kick_vca",
+            "type": "amp.vca",
+            "params": {
+              "velocity": 0.7
+            }
+          },
+          {
+            "id": "kick_out",
+            "type": "mix.out"
+          }
+        ],
+        "edges": [
+          {
+            "from": "kick_osc.out",
+            "to": "kick_vca.in"
+          },
+          {
+            "from": "kick_env.out",
+            "to": "kick_vca.gain"
+          },
+          {
+            "from": "kick_vca.out",
+            "to": "kick_out.in"
+          }
+        ]
+      },
+      {
+        "id": "snare",
+        "notes": [
+          38,
+          38
+        ],
+        "velocity": [
+          1,
+          127
+        ],
+        "voices": 2,
+        "oneShot": true,
+        "nodes": [
+          {
+            "id": "snare_osc",
+            "type": "osc.noise",
+            "slot": 2
+          },
+          {
+            "id": "snare_filter",
+            "type": "filter.svf",
+            "params": {
+              "type": 1,
+              "cutoff": 900.0
+            }
+          },
+          {
+            "id": "snare_env",
+            "type": "env.adsr",
+            "params": {
+              "attack": 0.001,
+              "decay": 0.18,
+              "sustain": 0.0,
+              "release": 0.05
+            }
+          },
+          {
+            "id": "snare_vca",
+            "type": "amp.vca",
+            "params": {
+              "velocity": 0.7
+            }
+          },
+          {
+            "id": "snare_out",
+            "type": "mix.out"
+          }
+        ],
+        "edges": [
+          {
+            "from": "snare_osc.out",
+            "to": "snare_filter.in"
+          },
+          {
+            "from": "snare_filter.out",
+            "to": "snare_vca.in"
+          },
+          {
+            "from": "snare_env.out",
+            "to": "snare_vca.gain"
+          },
+          {
+            "from": "snare_vca.out",
+            "to": "snare_out.in"
+          }
+        ]
+      },
+      {
+        "id": "hat_closed",
+        "notes": [
+          42,
+          42
+        ],
+        "velocity": [
+          1,
+          127
+        ],
+        "voices": 2,
+        "oneShot": true,
+        "choke": "hats",
+        "nodes": [
+          {
+            "id": "hat_closed_osc",
+            "type": "osc.noise",
+            "slot": 3
+          },
+          {
+            "id": "hat_closed_filter",
+            "type": "filter.svf",
+            "params": {
+              "type": 1,
+              "cutoff": 7000.0
+            }
+          },
+          {
+            "id": "hat_closed_env",
+            "type": "env.adsr",
+            "params": {
+              "attack": 0.001,
+              "decay": 0.04,
+              "sustain": 0.0,
+              "release": 0.02
+            }
+          },
+          {
+            "id": "hat_closed_vca",
+            "type": "amp.vca",
+            "params": {
+              "velocity": 0.7
+            }
+          },
+          {
+            "id": "hat_closed_out",
+            "type": "mix.out"
+          }
+        ],
+        "edges": [
+          {
+            "from": "hat_closed_osc.out",
+            "to": "hat_closed_filter.in"
+          },
+          {
+            "from": "hat_closed_filter.out",
+            "to": "hat_closed_vca.in"
+          },
+          {
+            "from": "hat_closed_env.out",
+            "to": "hat_closed_vca.gain"
+          },
+          {
+            "from": "hat_closed_vca.out",
+            "to": "hat_closed_out.in"
+          }
+        ]
+      },
+      {
+        "id": "hat_open",
+        "notes": [
+          46,
+          46
+        ],
+        "velocity": [
+          1,
+          127
+        ],
+        "voices": 2,
+        "oneShot": true,
+        "choke": "hats",
+        "nodes": [
+          {
+            "id": "hat_open_osc",
+            "type": "osc.noise",
+            "slot": 4
+          },
+          {
+            "id": "hat_open_filter",
+            "type": "filter.svf",
+            "params": {
+              "type": 1,
+              "cutoff": 6000.0
+            }
+          },
+          {
+            "id": "hat_open_env",
+            "type": "env.adsr",
+            "params": {
+              "attack": 0.001,
+              "decay": 0.6,
+              "sustain": 0.0,
+              "release": 0.1
+            }
+          },
+          {
+            "id": "hat_open_vca",
+            "type": "amp.vca",
+            "params": {
+              "velocity": 0.7
+            }
+          },
+          {
+            "id": "hat_open_out",
+            "type": "mix.out"
+          }
+        ],
+        "edges": [
+          {
+            "from": "hat_open_osc.out",
+            "to": "hat_open_filter.in"
+          },
+          {
+            "from": "hat_open_filter.out",
+            "to": "hat_open_vca.in"
+          },
+          {
+            "from": "hat_open_env.out",
+            "to": "hat_open_vca.gain"
+          },
+          {
+            "from": "hat_open_vca.out",
+            "to": "hat_open_out.in"
+          }
+        ]
+      }
+    ]
+  },
+  "fx": {
+    "instances": [
+      {
+        "id": "room",
+        "type": "fx.reverb_algo"
+      }
+    ],
+    "lanes": [
+      {
+        "id": "main",
+        "order": "listed",
+        "input": [
+          "voices"
+        ],
+        "chain": [
+          "room"
+        ]
+      }
+    ]
+  },
+  "defaults": {
+    "osc1_level": 1.0,
+    "osc2_level": 0.8,
+    "osc3_level": 0.8,
+    "osc4_level": 0.8,
+    "osc1_sub_wave": 0,
+    "osc1_sub_octave": 0,
+    "osc2_noise_type": 0,
+    "osc3_noise_type": 0,
+    "osc4_noise_type": 0,
+    "fx_ra_on": 1,
+    "fx_ra_mix": 0.15
+  }
+}

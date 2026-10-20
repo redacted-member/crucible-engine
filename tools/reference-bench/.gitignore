@@ -1,0 +1,7 @@
+build/
+work/
+__pycache__/
+*.pyc
+*.wav
+*.npz
+*.state

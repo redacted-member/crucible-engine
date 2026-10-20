@@ -1,0 +1,22 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: MIT -->
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Crucible wasm playground</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main>
+        <h1>Crucible wasm playground</h1>
+        <button id="start" type="button">Start audio</button>
+        <p id="status" role="status">Press start, then play notes on the computer keyboard (keys A to ;).</p>
+        <section aria-label="Output level">
+            <div id="meter" role="meter" aria-valuemin="-60" aria-valuemax="0"><div id="meter-bar"></div></div>
+            <span id="meter-value">-120.0 dBFS</span>
+        </section>
+    </main>
+    <script type="module" src="main.js"></script>
+</body>
+</html>

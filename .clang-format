@@ -1,0 +1,14 @@
+# Crucible Engine style: Allman braces, four spaces, 125 columns.
+BasedOnStyle: LLVM
+IndentWidth: 4
+ColumnLimit: 125
+BreakBeforeBraces: Allman
+AccessModifierOffset: -4
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortLambdasOnASingleLine: All
+NamespaceIndentation: None
+PointerAlignment: Left
+SortIncludes: false
+FixNamespaceComments: true

@@ -1,0 +1,47 @@
+{
+  "id": "serum2",
+  "name": "Serum 2",
+  "plugin": "/Library/Audio/Plug-Ins/VST3/Serum2.vst3",
+  "notes": [
+    "Black-box profile: only host-visible parameters of the plugin's default (init) state are used.",
+    "Osc A plays the default table (position 0 = saw, 0.5 = square). The sine comes from the sub oscillator.",
+    "FX slots, LFO shapes and modulation routings are not host parameters, so FX and LFO tests are skipped."
+  ],
+  "base": {
+    "Env 1 Attack": "0 ms",
+    "Env 1 Sustain": "0 dB",
+    "Env 1 Release": "15 ms",
+    "A Rand Phase": "0"
+  },
+  "roles": {
+    "saw": { "set": { "A Enable": 1, "A WT Pos": 0.0 } },
+    "square": { "set": { "A Enable": 1, "A WT Pos": 0.5 } },
+    "sine": { "set": { "A Enable": 0, "Sub Enable": 1, "Sub Shape": "Sine" } },
+    "osc_kill": { "param": "A Level", "from": 0.75, "to": 0.0 },
+    "wavetable": { "param": "A WT Pos", "from": 0.0, "to": 1.0, "set": { "A Enable": 1 } },
+    "unison": {
+      "voices": { "param": "A Unison", "text": "{n:g}" },
+      "detune_max": { "A Uni Detune": 1.0 }
+    },
+    "filter": {
+      "enable": { "Filter 1 On": 1 },
+      "types": {
+        "lp12": { "Filter 1 Type": "Low 12" },
+        "lp24": { "Filter 1 Type": "Low 24" },
+        "hp12": { "Filter 1 Type": "High 12" },
+        "bp12": { "Filter 1 Type": "Band 12" },
+        "ladder": { "Filter 1 Type": "MG Ladder" }
+      },
+      "cutoff": { "param": "Filter 1 Freq", "text": "{hz:g}" },
+      "resonance": { "param": "Filter 1 Res", "text": "{pct:g}" },
+      "drive": { "param": "Filter 1 Drive", "text": "{pct:g}" }
+    },
+    "amp_env": {
+      "attack": { "param": "Env 1 Attack", "text": "{ms:g} ms" },
+      "decay": { "param": "Env 1 Decay", "text": "{ms:g} ms" },
+      "sustain": { "param": "Env 1 Sustain", "text": "{db:.2f} dB" },
+      "release": { "param": "Env 1 Release", "text": "{ms:g} ms" }
+    },
+    "bend_range": { "set": { "Bend Up": "2", "Bend Down": "-2" }, "semitones": 2 }
+  }
+}

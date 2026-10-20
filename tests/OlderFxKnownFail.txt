@@ -1,0 +1,3 @@
+# Known failures of the older effects against the common acceptance (strict limits, never loosened).
+# One exact key (or key prefix) per line.
+# Regenerate: run 'crucible_engine_older_fx_tests OlderFxAll' and take the key after 'FAILED: ... : ' from each line.

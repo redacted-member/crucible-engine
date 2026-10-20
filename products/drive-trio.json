@@ -1,0 +1,72 @@
+{
+  "format": "crucible-product",
+  "version": 1,
+  "id": "crucible.drive-trio",
+  "name": "Three Drives (test product)",
+  "description": "Three independent saturator instances in parallel lanes. Instance 1 keeps the flat ids (fx_saturator_*), instances 2 and 3 are fx2_saturator_* and fx3_saturator_*; the idMap pins the third one's drive.",
+  "fx": {
+    "instances": [
+      {
+        "id": "drive_a",
+        "type": "fx.saturator"
+      },
+      {
+        "id": "drive_b",
+        "type": "fx.saturator"
+      },
+      {
+        "id": "drive_c",
+        "type": "fx.saturator"
+      }
+    ],
+    "lanes": [
+      {
+        "id": "lane_a",
+        "order": "listed",
+        "input": [
+          "voices"
+        ],
+        "chain": [
+          "drive_a"
+        ],
+        "level": 0.33
+      },
+      {
+        "id": "lane_b",
+        "order": "listed",
+        "input": [
+          "voices"
+        ],
+        "chain": [
+          "drive_b"
+        ],
+        "level": 0.33
+      },
+      {
+        "id": "lane_c",
+        "order": "listed",
+        "input": [
+          "voices"
+        ],
+        "chain": [
+          "drive_c"
+        ],
+        "level": 0.33
+      }
+    ]
+  },
+  "idMap": {
+    "fx3_saturator_drive": "drive_c_drive"
+  },
+  "defaults": {
+    "fx_saturator_on": 1,
+    "fx2_saturator_on": 1,
+    "fx3_saturator_on": 1,
+    "fx_saturator_mix": 1,
+    "fx2_saturator_mix": 1,
+    "fx3_saturator_mix": 1,
+    "fx_saturator_drive": 8,
+    "fx2_saturator_drive": 20,
+    "drive_c_drive": 36
+  }
+}

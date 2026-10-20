@@ -1,0 +1,46 @@
+{
+  "id": "pigments",
+  "name": "Pigments 7",
+  "plugin": "/Library/Audio/Plug-Ins/VST3/Pigments.vst3",
+  "notes": [
+    "Black-box profile: only host-visible parameters of the plugin's default state are used.",
+    "Engine 1 is a wavetable engine whose default table morphs sine (0) - triangle (1/3) - saw (2/3) - square (1).",
+    "The engine type, filter type, FX types and modulation routings are not host parameters: one filter type (the default F1) is measured, FX and LFO tests are skipped.",
+    "The plugin reports 48 samples of latency; onset measurements include it."
+  ],
+  "base": {
+    "Env Amp Attack": "0",
+    "Env Amp Sustain": 1.0,
+    "Env Amp Release": "0.015",
+    "Wavetable 1 Unison Voices": "1"
+  },
+  "roles": {
+    "saw": { "set": { "Wavetable 1 Position": 0.666667 } },
+    "square": { "set": { "Wavetable 1 Position": 1.0 } },
+    "sine": { "set": { "Wavetable 1 Position": 0.0 } },
+    "osc_kill": { "param": "Wavetable 1 Main Vol", "from": 1.0, "to": 0.0 },
+    "wavetable": { "param": "Wavetable 1 Position", "from": 0.0, "to": 1.0 },
+    "unison": {
+      "voices": { "param": "Wavetable 1 Unison Voices", "text": "{n:g}" },
+      "set": { "Wavetable 1 Unison": "On", "Wavetable 1 Unison Mode": "Classic" },
+      "detune_max": { "Wavetable 1 Unison Detune": 1.0 }
+    },
+    "filter": {
+      "enable": { "F1 On/Off": "On" },
+      "types": {
+        "default": { "F1 SEM Mode": 0.0 }
+      },
+      "cutoff": { "param": "F1 Cutoff", "text": "{hz:g}" },
+      "resonance": { "param": "F1 Resonance", "text": "{lin:g}" },
+      "drive": { "param": "F1 Drive", "text": "{lin:g}" },
+      "open": { "F1 Cutoff": "20000", "F1 Resonance": "0" }
+    },
+    "amp_env": {
+      "attack": { "param": "Env Amp Attack", "text": "{ms:g}" },
+      "decay": { "param": "Env Amp Decay", "text": "{s:g}" },
+      "sustain": { "param": "Env Amp Sustain", "text": "{lin:g}" },
+      "release": { "param": "Env Amp Release", "text": "{s:g}" }
+    },
+    "bend_range": { "set": { "Bend Up": "2", "Bend Down": "2" }, "semitones": 2 }
+  }
+}

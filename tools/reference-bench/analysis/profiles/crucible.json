@@ -1,0 +1,77 @@
+{
+  "id": "crucible",
+  "name": "Crucible Engine",
+  "plugin": "",
+  "notes": [
+    "The engine itself: tools/refbench.sh renders the plan with crucible-measure; no plugin is hosted for this profile."
+  ],
+  "base": {
+    "Filter 1 On": "Off",
+    "Amp Attack": "0.001",
+    "Amp Sustain": 1.0,
+    "Amp Release": "0.015",
+    "Osc 1 Random Phase": "0"
+  },
+  "roles": {
+    "saw": { "set": { "Osc 1 Table": "Sine-Saw", "Osc 1 Position": 1.0 } },
+    "square": { "set": { "Osc 1 Table": "Analog Square", "Osc 1 Position": 0.5 } },
+    "sine": { "set": { "Osc 1 Table": "Sine-Saw", "Osc 1 Position": 0.0 } },
+    "osc_kill": { "param": "Osc 1 Level", "from": 0.8, "to": 0.0 },
+    "wavetable": { "param": "Osc 1 Position", "from": 0.0, "to": 1.0, "set": { "Osc 1 Table": "Sine-Saw" } },
+    "unison": {
+      "voices": { "param": "Osc 1 Unison Voices", "text": "{n:g}" },
+      "detune_max": { "Osc 1 Unison Detune": 1.0 }
+    },
+    "filter": {
+      "enable": { "Filter 1 On": "On" },
+      "types": {
+        "lp12": { "Filter Type": "Lowpass 12" },
+        "lp24": { "Filter Type": "Lowpass 24" },
+        "hp12": { "Filter Type": "Highpass 12" },
+        "bp12": { "Filter Type": "Bandpass 12" },
+        "ladder": { "Filter Type": "Ladder LP" }
+      },
+      "cutoff": { "param": "Cutoff", "text": "{hz:g}" },
+      "resonance": { "param": "Resonance", "text": "{lin:g}" },
+      "drive": { "param": "Drive", "text": "{lin:g}" }
+    },
+    "amp_env": {
+      "attack": { "param": "Amp Attack", "text": "{s:g}" },
+      "decay": { "param": "Amp Decay", "text": "{s:g}" },
+      "sustain": { "param": "Amp Sustain", "text": "{lin:g}" },
+      "release": { "param": "Amp Release", "text": "{s:g}" }
+    },
+    "bend_range": { "set": { "Bend Range": "2" }, "semitones": 2 },
+    "lfo": {
+      "set": { "Mod 1 Source": "LFO 1", "Mod 1 Destination": "Amp Level", "Mod 1 Amount": 0.75, "LFO 1 Trigger": "Retrigger" },
+      "rate": { "param": "LFO 1 Rate", "text": "{hz:g}" },
+      "shape": { "param": "LFO 1 Shape", "values": { "sine": "Sine", "triangle": "Triangle", "saw": "Saw", "square": "Square" } }
+    },
+    "fx": {
+      "reverb": {
+        "set": { "Reverb On": "On", "Reverb Mix": 1.0, "Reverb Predelay": "0" },
+        "decay": { "param": "Reverb Decay", "text": "{s:g}" }
+      },
+      "delay": {
+        "set": { "Delay On": "On", "Delay Mix": 1.0, "Delay Sync": "Off", "Delay Mode": "Mono" },
+        "time": { "param": "Delay Time", "text": "{ms:g}" },
+        "feedback": { "param": "Delay Feedback", "text": "{lin:g}" }
+      },
+      "chorus": { "set": { "Chorus On": "On", "Chorus Mix": 0.5 } },
+      "eq": {
+        "set": { "EQ On": "On" },
+        "bands": [
+          { "freq": 120, "gain": { "param": "EQ Low Gain", "text": "{db:g}" }, "freqParam": { "param": "EQ Low Freq", "text": "{hz:g}" } },
+          { "freq": 1000, "gain": { "param": "EQ Mid Gain", "text": "{db:g}" }, "freqParam": { "param": "EQ Mid Freq", "text": "{hz:g}" } },
+          { "freq": 6000, "gain": { "param": "EQ High Gain", "text": "{db:g}" }, "freqParam": { "param": "EQ High Freq", "text": "{hz:g}" } }
+        ]
+      },
+      "compressor": {
+        "set": { "Comp On": "On", "Comp Threshold": "-24", "Comp Ratio": "4", "Comp Knee": "0", "Comp Makeup": "0", "Comp Attack": "1", "Comp Release": "50" },
+        "threshold_db": -24,
+        "ratio": 4,
+        "input": { "param": "Osc 1 Level", "text": "{lin:g}" }
+      }
+    }
+  }
+}

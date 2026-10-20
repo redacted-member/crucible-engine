@@ -1,0 +1,52 @@
+{
+  "format": "crucible-product",
+  "version": 1,
+  "id": "crucible.fx-only",
+  "name": "FX Only (test product)",
+  "description": "No voices: the host input (process_aux) runs through a saturator and a delay in series, with a reverb send.",
+  "voice": "none",
+  "fx": {
+    "instances": [
+      {
+        "id": "drive",
+        "type": "fx.saturator"
+      },
+      {
+        "id": "echo",
+        "type": "fx.delay_pro"
+      },
+      {
+        "id": "room",
+        "type": "fx.reverb_algo"
+      }
+    ],
+    "lanes": [
+      {
+        "id": "main",
+        "order": "listed",
+        "input": [
+          "aux"
+        ],
+        "chain": [
+          "drive",
+          "echo"
+        ]
+      },
+      {
+        "id": "verb",
+        "order": "listed",
+        "input": [],
+        "chain": [
+          "room"
+        ]
+      }
+    ],
+    "sends": [
+      {
+        "from": "main",
+        "to": "verb",
+        "gain": 0.3
+      }
+    ]
+  }
+}

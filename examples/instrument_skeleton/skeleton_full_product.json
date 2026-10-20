@@ -1,0 +1,173 @@
+{
+  "format": "crucible-product",
+  "version": 1,
+  "id": "skeleton.full",
+  "name": "Skeleton Full",
+  "description": "Instrument skeleton with every current module: the classic voice with 3 oscillator slots, 2 filters and 6 macros (every oscillator type, every filter model, sequencer, arpeggiator, modulation) and every current effect in one listed chain. Used by the skeleton_all_features test; copy skeleton_product.json for a real instrument.",
+  "layout": {
+    "oscillators": 3,
+    "filters": 2,
+    "macros": 6
+  },
+  "voice": "classic",
+  "fx": {
+    "instances": [
+      {
+        "id": "limiter",
+        "type": "fx.limiter"
+      },
+      {
+        "id": "crusher",
+        "type": "fx.crusher"
+      },
+      {
+        "id": "width",
+        "type": "fx.width"
+      },
+      {
+        "id": "filter",
+        "type": "fx.filter"
+      },
+      {
+        "id": "multiband",
+        "type": "fx.multiband"
+      },
+      {
+        "id": "trance",
+        "type": "fx.trance"
+      },
+      {
+        "id": "tremolo",
+        "type": "fx.tremolo"
+      },
+      {
+        "id": "ring",
+        "type": "fx.ring"
+      },
+      {
+        "id": "vocoder",
+        "type": "fx.vocoder"
+      },
+      {
+        "id": "comp_clean",
+        "type": "fx.comp_clean"
+      },
+      {
+        "id": "comp_vca",
+        "type": "fx.comp_vca"
+      },
+      {
+        "id": "gate2",
+        "type": "fx.gate2"
+      },
+      {
+        "id": "maximizer",
+        "type": "fx.maximizer"
+      },
+      {
+        "id": "clipper",
+        "type": "fx.clipper"
+      },
+      {
+        "id": "meter",
+        "type": "util.meter"
+      },
+      {
+        "id": "eq_pro",
+        "type": "fx.eq_pro"
+      },
+      {
+        "id": "reverb_algo",
+        "type": "fx.reverb_algo"
+      },
+      {
+        "id": "convolution",
+        "type": "fx.convolution"
+      },
+      {
+        "id": "delay_pro",
+        "type": "fx.delay_pro"
+      },
+      {
+        "id": "transient",
+        "type": "fx.transient"
+      },
+      {
+        "id": "deesser",
+        "type": "fx.deesser"
+      },
+      {
+        "id": "ensemble",
+        "type": "fx.ensemble"
+      },
+      {
+        "id": "phaser2",
+        "type": "fx.phaser2"
+      },
+      {
+        "id": "flanger2",
+        "type": "fx.flanger2"
+      },
+      {
+        "id": "exciter",
+        "type": "fx.exciter"
+      },
+      {
+        "id": "saturator",
+        "type": "fx.saturator"
+      },
+      {
+        "id": "shaper",
+        "type": "fx.shaper"
+      },
+      {
+        "id": "multiband_drive",
+        "type": "fx.multiband_drive"
+      },
+      {
+        "id": "cabinet",
+        "type": "fx.cabinet"
+      }
+    ],
+    "lanes": [
+      {
+        "id": "main",
+        "order": "listed",
+        "input": [
+          "voices"
+        ],
+        "chain": [
+          "limiter",
+          "crusher",
+          "width",
+          "filter",
+          "multiband",
+          "trance",
+          "tremolo",
+          "ring",
+          "vocoder",
+          "comp_clean",
+          "comp_vca",
+          "gate2",
+          "maximizer",
+          "clipper",
+          "meter",
+          "eq_pro",
+          "reverb_algo",
+          "convolution",
+          "delay_pro",
+          "transient",
+          "deesser",
+          "ensemble",
+          "phaser2",
+          "flanger2",
+          "exciter",
+          "saturator",
+          "shaper",
+          "multiband_drive",
+          "cabinet"
+        ]
+      }
+    ]
+  }
+}
