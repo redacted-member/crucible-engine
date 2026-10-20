@@ -108,8 +108,8 @@ public:
 
   void setZero()
   {
-    if (_size > 0) // crucible: glibc declares the pointer non-null, an empty buffer holds a null one
-      ::memset(_data, 0, _size * sizeof(T));
+      if (_size > 0) // crucible: glibc declares the pointer non-null, an empty buffer holds a null one
+          ::memset(_data, 0, _size * sizeof(T));
   }
 
   void copyFrom(const Buffer<T>& other)
@@ -322,9 +322,9 @@ void CopyAndPad(Buffer<T>& dest, const T* src, size_t srcSize)
   assert(dest.size() >= srcSize);
   // crucible: skip the empty copies, memcpy / memset must not see null pointers
   if (srcSize > 0)
-    ::memcpy(dest.data(), src, srcSize * sizeof(T));
+      ::memcpy(dest.data(), src, srcSize * sizeof(T));
   if (dest.size() > srcSize)
-    ::memset(dest.data() + srcSize, 0, (dest.size()-srcSize) * sizeof(T));
+      ::memset(dest.data() + srcSize, 0, (dest.size() - srcSize) * sizeof(T));
 }
 
 
