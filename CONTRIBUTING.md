@@ -48,6 +48,22 @@ tools/check-spdx.sh    # every source file carries its licence header
 
 Run the sanitizer builds before you open a pull request that touches threading, memory or SIMD code.
 
+### CPU-budget tests on shared machines
+
+Many tests check a CPU budget ("percent of one core") or a timing ratio. They need a quiet machine and are enforced by
+default, in `tools/ci.sh` too. On a shared machine (the hosted GitHub Actions runners, a busy laptop) set
+`CRUCIBLE_SKIP_CPU_TESTS=1`: every CPU-budget or timing expectation is then logged as `skipped CPU check ... would
+pass` or `would fail` and never fails the run; all other expectations are unchanged. `.github/workflows/ci.yml` sets it
+for the hosted runners.
+
+```sh
+CRUCIBLE_SKIP_CPU_TESTS=1 ctest --test-dir build --output-on-failure
+```
+
+Sanitizer builds on Linux (AddressSanitizer / ThreadSanitizer) link a runtime that defines `operator new` itself, so the
+allocation counter of the tests is not compiled there and the "no allocation on the audio thread" checks are vacuous in
+those builds; the Release and scalar builds carry them.
+
 ## Adding a module
 
 `docs/MODULE_GUIDE.md` walks through it: a module is a `ModuleDescriptor` registered with one line in

@@ -380,7 +380,7 @@ public:
             std::printf("  saturator filter CPU (one core, %% of real time, 48 kHz stereo): off %.2f %%, pre %.2f %%, post %.2f %%\n",
                         best[0], best[1], best[2]);
             if (!CRUCIBLE_TEST_SANITIZED)
-                expect(best[1] < best[0] + 1.0 && best[2] < best[0] + 1.0, "filter adds under one percent of a core");
+                expectCpu(best[1] < best[0] + 1.0 && best[2] < best[0] + 1.0, "filter adds under one percent of a core");
         }
     }
 };

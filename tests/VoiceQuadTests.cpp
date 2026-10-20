@@ -557,7 +557,7 @@ public:
                     lane = std::min(lane, filterCost(8, row.model) / 2.0);
                 logMessage(String("model ") + String(row.model) + ": " + String(lane) + " % per lane, plan target " +
                            String(row.target) + " %");
-                expect(lane <= row.target * 1.2,
+                expectCpu(lane <= row.target * 1.2,
                        String("model ") + String(row.model) + " costs " + String(lane) + " % per lane");
             }
 #endif

@@ -702,9 +702,9 @@ private:
             }
             logMessage("modal CPU: resonator " + String(resonator, 3) + " %, string " + String(comb, 3) +
                        " %, bowed resonator " + String(bowed, 3) + " %");
-            expect(resonator <= 0.3, "resonator " + std::to_string(resonator) + " %");
-            expect(comb <= 0.3, "string " + std::to_string(comb) + " %");
-            expect(bowed <= 0.3, "bowed resonator " + std::to_string(bowed) + " %");
+            expectCpu(resonator <= 0.3, "resonator " + std::to_string(resonator) + " %");
+            expectCpu(comb <= 0.3, "string " + std::to_string(comb) + " %");
+            expectCpu(bowed <= 0.3, "bowed resonator " + std::to_string(bowed) + " %");
         }
 #endif
     }
@@ -830,7 +830,7 @@ private:
             b.set("harm_count", 128.0f);
             const double c16 = cpuPercent(a, 45.0, 5.0), c128 = cpuPercent(b, 45.0, 5.0);
             logMessage("harmonic CPU: 16 partials " + String(c16, 3) + " %, 128 partials " + String(c128, 3) + " %");
-            expect(c16 < 1.0 && c128 < 4.0, "harmonic oscillator within its Heavy class");
+            expectCpu(c16 < 1.0 && c128 < 4.0, "harmonic oscillator within its Heavy class");
         }
 #endif
     }
@@ -992,7 +992,7 @@ private:
             }
             logMessage("spectral oscillator: stereo CPU " + String(cpu, 3) + " % per voice, first chunk of a note " +
                        String(worstStart, 3) + " ms");
-            expect(cpu < 3.0, "spectral oscillator CPU within its Heavy class");
+            expectCpu(cpu < 3.0, "spectral oscillator CPU within its Heavy class");
         }
 #endif
     }

@@ -836,7 +836,7 @@ public:
                     const double quad = cpuPercent(c, Quality::Standard, true);
                     speedup = mono / quad;
                 }
-                expect(speedup >= 2.5, std::string(c.name) + " speed-up " + num(speedup, 2));
+                expectCpu(speedup >= 2.5, std::string(c.name) + " speed-up " + num(speedup, 2));
             }
 #endif
         }
@@ -861,8 +861,8 @@ public:
                 logMessage(std::string(c.name) + ": one voice " + num(mono, 3) + " % (drive 0: " + num(mono0, 3) +
                            "), processQuad " + num(quad, 3) + " % per voice (drive 0: " + num(quad0, 3) + "), plan target " +
                            num(c.cpuTarget, 2) + " %");
-                expect(quad <= c.cpuTarget * 1.2, std::string(c.name) + " processQuad " + num(quad, 3) + " % per voice");
-                expect(mono <= 0.6, std::string(c.name) + " one voice " + num(mono, 3) + " %");
+                expectCpu(quad <= c.cpuTarget * 1.2, std::string(c.name) + " processQuad " + num(quad, 3) + " % per voice");
+                expectCpu(mono <= 0.6, std::string(c.name) + " one voice " + num(mono, 3) + " %");
             }
 #endif
         }

@@ -747,8 +747,8 @@ private:
         const double high = cpuPercent(Quality::High, setup, &load);
         logMessage(String("CPU fx.exciter High: ") + String(high, 3) + " % (best of 8, load average " + String(load, 1) +
                    ")");
-        expect(standard <= 0.3 * 1.2, "Standard within 0.3 % (20 % measurement margin)");
-        expect(high <= 0.5 * 1.2, "High within 0.5 % (20 % measurement margin)");
+        expectCpu(standard <= 0.3 * 1.2, "Standard within 0.3 % (20 % measurement margin)");
+        expectCpu(high <= 0.5 * 1.2, "High within 0.5 % (20 % measurement margin)");
 #endif
     }
 };

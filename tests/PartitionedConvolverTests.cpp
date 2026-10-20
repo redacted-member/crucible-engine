@@ -254,9 +254,9 @@ public:
                 const double percent = 100.0 * bestTotal / (static_cast<double>(blocksTotal) * block / rate);
                 const double spread = peak / mean;
                 std::cout << "  " << mode.name << ": " << percent << " % of one core, per-block max/mean " << spread << "\n";
-                expect(percent <= mode.limit,
+                expectCpu(percent <= mode.limit,
                        String(mode.name) + " CPU " + String(percent, 3) + " % over " + String(mode.limit));
-                expect(spread <= 2.0, String(mode.name) + " per-block spread " + String(spread, 2));
+                expectCpu(spread <= 2.0, String(mode.name) + " per-block spread " + String(spread, 2));
             }
         }
 #endif

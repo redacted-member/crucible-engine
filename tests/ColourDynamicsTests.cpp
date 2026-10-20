@@ -730,9 +730,9 @@ private:
                 std::printf("  drive %2.0f quality %d: worst model %s %.3f %%, hysteresis %.3f %%\n", drive,
                             static_cast<int>(q), kModelNames[worstModel], worst, tape);
                 const double limit = drive < 20.0f ? limitDefault[static_cast<int>(q)] : limitMax[static_cast<int>(q)];
-                expect(worst <= limit,
+                expectCpu(worst <= limit,
                        "drive " + String(drive, 0) + " quality " + String(static_cast<int>(q)) + " " + String(worst, 3));
-                expect(tape <= limitTape[static_cast<int>(q)],
+                expectCpu(tape <= limitTape[static_cast<int>(q)],
                        "hysteresis quality " + String(static_cast<int>(q)) + " " + String(tape, 3));
             }
         }

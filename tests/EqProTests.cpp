@@ -1587,8 +1587,8 @@ private:
             logMessage(String("eight bands: minimum ") + String(minimum, 3) + " %, natural " + String(natural, 3) +
                        " %, linear (4k taps) " + String(linear, 3) + " %, minimum with two dynamic bands " +
                        String(dynamic, 3) + " %");
-            expect(minimum <= 0.25 * 1.2, "minimum phase CPU");
-            expect(linear <= 0.8 * 1.2, "linear phase CPU");
+            expectCpu(minimum <= 0.25 * 1.2, "minimum phase CPU");
+            expectCpu(linear <= 0.8 * 1.2, "linear phase CPU");
         }
 #endif
     }

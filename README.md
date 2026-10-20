@@ -275,5 +275,7 @@ meter, the `Engine` facade, the SPSC ring, the smoother and the FFT.
 Further suites: voice graph (`crucible_engine_graph_tests` runs the 5-oscillator, 4-filter shape in its own process), oscillator modules and cross modulation, minBLEP, oversampler, polyphony (retrigger, steal, pedal, 16 x 8 x 3 load), quality (aliasing, THD+N, bandwidth). Additional suites cover the module registry, modulation routes, patches / JSON / MIDI files, the arpeggiator, user
 wavetables and the cloud, the second-generation effects, golden renders, parity, fuzzing and the master analyzer.
 
+CPU-budget expectations need a quiet machine; set `CRUCIBLE_SKIP_CPU_TESTS=1` to log them as skips on shared runners (see `CONTRIBUTING.md`).
+
 Bit-exactness is protected by fingerprints of whole renders (a plain patch, warps and filters, every FX, the
 sequencer with locks and swing) and of all wavetables; see `CONTRIBUTING.md`.

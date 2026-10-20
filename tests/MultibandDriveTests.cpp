@@ -653,7 +653,7 @@ private:
                 }
                 std::printf("  drive %2.0f dB quality %d: %.3f %% of a core\n", drive, static_cast<int>(q), best);
                 if (drive > 0.0f)
-                    expect(best <= limit[static_cast<int>(q)], String(best, 3));
+                    expectCpu(best <= limit[static_cast<int>(q)], String(best, 3));
             }
 #else
         logMessage("CPU timing skipped (debug, sanitizer or non-native SIMD build)");

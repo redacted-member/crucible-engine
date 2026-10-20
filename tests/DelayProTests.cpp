@@ -443,7 +443,7 @@ private:
             logMessage(String("FractionalDelay ") + String(taps) + " taps: " + String(nsPerRead, 1) +
                        " ns per read = " + String(nsPerRead * 48000.0 * 1.0e-9 * 100.0, 4) +
                        " % of a core per read per sample at 48 kHz" + (sink == 12345.678f ? "!" : ""));
-            expect(nsPerRead < 400.0, "read cost sane");
+            expectCpu(nsPerRead < 400.0, "read cost sane");
         }
 #endif
     }
@@ -586,7 +586,7 @@ private:
             logMessage(String("BBD delay ") + String(delay * 1000.0, 0) + " ms (clock " + String(b.clockHz(), 0) +
                        " Hz): " + String(ns, 1) + " ns per sample = " + String(ns * 48000.0 * 1.0e-9 * 100.0, 3) +
                        " % of a core per channel at 48 kHz");
-            expect(ns * 48000.0 * 1.0e-9 * 100.0 < 0.25, "BBD core within its share of the 0.6 % budget per channel");
+            expectCpu(ns * 48000.0 * 1.0e-9 * 100.0 < 0.25, "BBD core within its share of the 0.6 % budget per channel");
         }
 #endif
     }
@@ -1209,8 +1209,8 @@ private:
         logMessage(String("CPU Digital: all features ") + String(d, 3) + " %, defaults " + String(dp, 3) + " %");
         logMessage(String("CPU Analog: 1024 stages 12 ms all features ") + String(a, 3) + " %, 375 ms defaults " +
                    String(ap, 3) + " %, 256 stages 3 ms all features " + String(af, 3) + " %");
-        expect(d <= 0.3 * 1.2, "Digital within 0.3 % (20 % measurement margin)");
-        expect(std::max({a, ap, af}) <= 0.6 * 1.2, "Analog within 0.6 % (20 % measurement margin)");
+        expectCpu(d <= 0.3 * 1.2, "Digital within 0.3 % (20 % measurement margin)");
+        expectCpu(std::max({a, ap, af}) <= 0.6 * 1.2, "Analog within 0.6 % (20 % measurement margin)");
 #endif
     }
 };

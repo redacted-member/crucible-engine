@@ -1524,10 +1524,10 @@ private:
 #if __has_feature(address_sanitizer) || __has_feature(thread_sanitizer)
             expect(true);
 #else
-            expect(overheadPct < 5.0, "graph overhead " + String(overheadPct) + " %");
+            expectCpu(overheadPct < 5.0, "graph overhead " + String(overheadPct) + " %");
 #endif
 #else
-            expect(overheadPct < 5.0, "graph overhead " + String(overheadPct) + " %");
+            expectCpu(overheadPct < 5.0, "graph overhead " + String(overheadPct) + " %");
 #endif
 #endif
         }

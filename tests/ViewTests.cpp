@@ -697,7 +697,7 @@ public:
             const double ns =
                 std::chrono::duration<double, std::nano>(std::chrono::steady_clock::now() - t0).count() / calls;
             logMessage("publish() with nothing subscribed: " + std::to_string(ns) + " ns per render call");
-            expect(kSanitised || ns < 20.0, "publish with no subscription is one atomic load, " + String(ns, 2) + " ns");
+            expectCpu(kSanitised || ns < 20.0, "publish with no subscription is one atomic load, " + String(ns, 2) + " ns");
             expectEquals(static_cast<int>(c.published.load()), 0);
 
             const auto timeRender = [](Engine& e, int blocks)
@@ -729,7 +729,7 @@ public:
             const double all = timeRender(e, 300);
             logMessage("render " + std::to_string(base) + " us per 256-sample block; with " + std::to_string(live) +
                        " live views at 60 Hz " + std::to_string(all) + " us");
-            expect(kSanitised || all < base * 1.5 + 5.0,
+            expectCpu(kSanitised || all < base * 1.5 + 5.0,
                    "views at 60 Hz stay cheap: " + String(all, 2) + " vs " + String(base, 2) + " us");
         }
     }

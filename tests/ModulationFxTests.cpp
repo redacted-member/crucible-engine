@@ -678,7 +678,7 @@ private:
                    String(dm, 3) + " %, smooth random with noise and compander " + String(nz, 3) + " %");
         logMessage(String("CPU ensemble, brighter voicings (information; the clock sets the cost): 512 stages 10 ms ") +
                    String(br, 3) + " %, 1024 stages 20 ms " + String(bb, 3) + " %");
-        expect(std::max({d, dm, nz}) <= 0.5 * 1.2,
+        expectCpu(std::max({d, dm, nz}) <= 0.5 * 1.2,
                "defaults, Dimensional and the noisy voicing within 0.5 % (20 % measurement margin)");
 #endif
     }
@@ -1197,7 +1197,7 @@ private:
         logMessage(String("CPU phaser2: defaults (4 stages, linear) ") + String(d, 3) + " %, 6 stages with feedback " +
                    String(s6, 3) + " %, 12 stages with feedback " + String(s12, 3) + " %, 4 stages OTA " + String(o, 3) +
                    " %, 8 stages barber-pole " + String(bp, 3) + " %");
-        expect(std::max({d, s6, s12}) <= 0.3 * 1.2, "linear phasers up to 12 stages within 0.3 % (20 % measurement margin)");
+        expectCpu(std::max({d, s6, s12}) <= 0.3 * 1.2, "linear phasers up to 12 stages within 0.3 % (20 % measurement margin)");
 #endif
     }
 
@@ -1546,7 +1546,7 @@ private:
         logMessage(String("CPU flanger2: defaults (digital, LFO, feedback 0.4) ") + String(d, 3) +
                    " %, envelope source with negative saturated feedback " + String(e, 3) + " %, BBD mode (256 stages) " +
                    String(b, 3) + " %");
-        expect(std::max(d, e) <= 0.3 * 1.2, "digital mode within 0.3 % (20 % measurement margin)");
+        expectCpu(std::max(d, e) <= 0.3 * 1.2, "digital mode within 0.3 % (20 % measurement margin)");
 #endif
     }
 };

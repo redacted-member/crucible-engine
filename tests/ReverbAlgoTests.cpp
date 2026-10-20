@@ -1189,12 +1189,12 @@ private:
                     {"fx_ra_on", 1.0f}, {"fx_ra_algo", static_cast<float>(a)}, {"fx_ra_decay", 3.0f}, {"fx_ra_mix", 0.5f}};
                 const double c16 = cpuPercent(setup, Quality::Standard);
                 line16 = line16 + String(kNames[a]) + " " + String(c16, 3) + "  ";
-                expect(c16 <= 1.0 * 1.2, String(kNames[a]) + " 16-line CPU");
+                expectCpu(c16 <= 1.0 * 1.2, String(kNames[a]) + " 16-line CPU");
                 if (a != static_cast<int>(ReverbAlgorithm::Plate))
                 {
                     const double c32 = cpuPercent(setup, Quality::High);
                     line32 = line32 + String(kNames[a]) + " " + String(c32, 3) + "  ";
-                    expect(c32 <= 2.0 * 1.2, String(kNames[a]) + " 32-line CPU");
+                    expectCpu(c32 <= 2.0 * 1.2, String(kNames[a]) + " 32-line CPU");
                 }
             }
             logMessage(String("CPU, 16 lines (%): ") + line16);

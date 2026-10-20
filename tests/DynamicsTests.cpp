@@ -1103,10 +1103,10 @@ private:
             const double gate = cpuPercent({{"fx_g2_on", 1.0f}, {"fx_g2_thresh", -30.0f}});
             logMessage(String("comp_clean ") + String(clean, 3) + " %, with lookahead + true peak + hybrid " +
                        String(cleanTp, 3) + " %, comp_vca " + String(vca, 3) + " %, gate2 " + String(gate, 3) + " %");
-            expect(clean <= 0.15 * 1.2, "comp_clean CPU");
-            expect(cleanTp <= 0.30 * 1.2, "comp_clean with lookahead and true peak CPU");
-            expect(vca <= 0.20 * 1.2, "comp_vca CPU");
-            expect(gate <= 0.10 * 1.2, "gate2 CPU");
+            expectCpu(clean <= 0.15 * 1.2, "comp_clean CPU");
+            expectCpu(cleanTp <= 0.30 * 1.2, "comp_clean with lookahead and true peak CPU");
+            expectCpu(vca <= 0.20 * 1.2, "comp_vca CPU");
+            expectCpu(gate <= 0.10 * 1.2, "gate2 CPU");
         }
 #endif
     }

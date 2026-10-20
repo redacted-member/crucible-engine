@@ -977,7 +977,7 @@ private:
             std::printf("  quality %d (%dx): %.3f %% of a core\n", static_cast<int>(q), 1 << (q == Quality::Draft ? 1 : (q == Quality::Standard ? 2 : 3)), best);
             // Measured on an idle core: 0.25 %, 0.66 % and 2.2 %; the ceilings leave room for a loaded machine.
             const double limit = q == Quality::Draft ? 0.6 : (q == Quality::Standard ? 1.2 : 3.5);
-            expect(best <= limit, "quality " + String(static_cast<int>(q)) + " " + String(best, 3));
+            expectCpu(best <= limit, "quality " + String(static_cast<int>(q)) + " " + String(best, 3));
         }
 #else
         logMessage("timed checks skipped in this build");

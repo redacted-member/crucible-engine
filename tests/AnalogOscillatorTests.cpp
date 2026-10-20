@@ -801,8 +801,8 @@ public:
                 57);
             logMessage("CPU per voice-oscillator: saw A3 " + String(saw, 4) + " %, saw A5 " + String(sawHigh, 4) +
                        " %, pulse + hard sync A3 " + String(pwmSync, 4) + " %");
-            expect(saw <= 0.05, "saw " + std::to_string(saw) + " %");
-            expect(pwmSync <= 0.12, "PWM + sync " + std::to_string(pwmSync) + " %");
+            expectCpu(saw <= 0.05, "saw " + std::to_string(saw) + " %");
+            expectCpu(pwmSync <= 0.12, "PWM + sync " + std::to_string(pwmSync) + " %");
 #endif
         }
     }

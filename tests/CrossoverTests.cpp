@@ -370,8 +370,8 @@ private:
             logMessage(String("five bands: minimum phase 12 / 24 / 48 dB/oct ") + String(minimum[0], 3) + " / " +
                        String(minimum[1], 3) + " / " + String(minimum[2], 3) + " %, linear phase (4095 taps) " +
                        String(linear, 3) + " %");
-            expect(minimum[1] <= 1.2, "minimum-phase 5-band CPU (the multiband plan row is 1.2 % including the processing)");
-            expect(linear <= 2.5, "linear-phase 5-band CPU (2.5 % in the multiband plan row)");
+            expectCpu(minimum[1] <= 1.2, "minimum-phase 5-band CPU (the multiband plan row is 1.2 % including the processing)");
+            expectCpu(linear <= 2.5, "linear-phase 5-band CPU (2.5 % in the multiband plan row)");
         }
 #endif
     }

@@ -626,7 +626,7 @@ private:
             "transient", {{"fx_transient_attack", 6.0f}, {"fx_transient_sustain", -6.0f}, {"fx_transient_lookahead", 2.0f}},
             &load);
         logMessage(String("CPU fx.transient: ") + String(c, 3) + " % (best of 8, load average " + String(load, 1) + ")");
-        expect(c <= 0.1 * 1.2, "within 0.1 % (20 % measurement margin)");
+        expectCpu(c <= 0.1 * 1.2, "within 0.1 % (20 % measurement margin)");
 #endif
     }
 
@@ -1018,7 +1018,7 @@ private:
             "deesser",
             {{"fx_deesser_threshold_mode", 1.0f}, {"fx_deesser_threshold", -30.0f}, {"fx_deesser_lookahead", 1.5f}}, &load);
         logMessage(String("CPU fx.deesser: ") + String(c, 3) + " % (best of 8, load average " + String(load, 1) + ")");
-        expect(c <= 0.2 * 1.2, "within 0.2 % (20 % measurement margin)");
+        expectCpu(c <= 0.2 * 1.2, "within 0.2 % (20 % measurement margin)");
 #endif
     }
 };

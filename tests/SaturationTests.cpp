@@ -381,7 +381,7 @@ public:
                     best = std::min(
                         best, 100.0 * std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count() / 4.0);
                 }
-                expect(best <= 1.0, modelName(m) + " " + String(best, 2) + " % of a core");
+                expectCpu(best <= 1.0, modelName(m) + " " + String(best, 2) + " % of a core");
             }
 #endif
         }

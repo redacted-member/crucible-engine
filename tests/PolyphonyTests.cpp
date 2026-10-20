@@ -273,10 +273,10 @@ public:
 #if !defined(__SANITIZE_ADDRESS__) && !defined(__SANITIZE_THREAD__)
 #if defined(__has_feature)
 #if !__has_feature(address_sanitizer) && !__has_feature(thread_sanitizer)
-            expect(total / blocks < budget, "mean block time exceeds the real-time budget");
+            expectCpu(total / blocks < budget, "mean block time exceeds the real-time budget");
 #endif
 #else
-            expect(total / blocks < budget, "mean block time exceeds the real-time budget");
+            expectCpu(total / blocks < budget, "mean block time exceeds the real-time budget");
 #endif
 #endif
         }

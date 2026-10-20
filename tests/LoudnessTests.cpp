@@ -685,7 +685,7 @@ private:
         }
         logMessage("LoudnessMeter, two channels at 48 kHz: " + String(percent[0], 3) + " % of one core without true peak, " +
                    String(percent[1], 3) + " % with the 4x true-peak interpolators");
-        expect(percent[1] < 0.2 * 1.2, "CPU");
+        expectCpu(percent[1] < 0.2 * 1.2, "CPU");
 #endif
     }
 };

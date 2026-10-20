@@ -983,13 +983,13 @@ private:
                        String(clipperTypical, 3) + " % when the signal stays below the ceiling), with the guard " +
                        String(clipperGuard, 3) + " %, 4x without the guard " + String(clipper4, 3) + " %; util.meter " +
                        String(meter, 3) + " %");
-            expect(sidechain <= 0.6 * 1.2, "maximiser CPU");
-            expect(extras <= 0.9, "maximiser with clip stage CPU");
-            expect(oversampled <= 1.2 * 1.2, "maximiser 4x audio CPU");
-            expect(clipper <= 0.5, "clipper CPU while clipping continuously");
-            expect(clipperTypical <= 0.3 * 1.2, "clipper CPU");
-            expect(clipperGuard <= 1.2, "clipper with guard CPU");
-            expect(meter <= 0.2 * 1.2, "meter CPU");
+            expectCpu(sidechain <= 0.6 * 1.2, "maximiser CPU");
+            expectCpu(extras <= 0.9, "maximiser with clip stage CPU");
+            expectCpu(oversampled <= 1.2 * 1.2, "maximiser 4x audio CPU");
+            expectCpu(clipper <= 0.5, "clipper CPU while clipping continuously");
+            expectCpu(clipperTypical <= 0.3 * 1.2, "clipper CPU");
+            expectCpu(clipperGuard <= 1.2, "clipper with guard CPU");
+            expectCpu(meter <= 0.2 * 1.2, "meter CPU");
         }
 #endif
     }

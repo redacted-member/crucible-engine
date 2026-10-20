@@ -884,7 +884,7 @@ private:
         double load = 0.0;
         const double pct = cpuPercent(&load);
         logMessage(String("CPU fx.cabinet: ") + String(pct, 3) + " % (best of 8, load average " + String(load, 1) + ")");
-        expect(pct <= 1.5, "within 1.5 % of one core");
+        expectCpu(pct <= 1.5, "within 1.5 % of one core");
 #endif
     }
 };

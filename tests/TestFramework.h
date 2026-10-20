@@ -7,6 +7,7 @@
 
 #include <cmath>
 #include <cstdio>
+#include <cstdlib>
 #include <iomanip>
 #include <memory>
 #include <sstream>
@@ -127,6 +128,32 @@ protected:
         os << "expected " << expected << " +/- " << tolerance << ", got " << actual;
         expect(diff <= static_cast<double>(tolerance),
                message.str().empty() ? String(os.str()) : message + " (" + os.str() + ")");
+    }
+
+    // True when CRUCIBLE_SKIP_CPU_TESTS is set (to anything but "" or "0"). Hosted CI runners share their cores, so a
+    // CPU-budget or timing expectation is not meaningful there; local runs (tools/ci.sh) leave the variable unset and
+    // keep enforcing every budget.
+    static bool cpuChecksSkipped()
+    {
+        static const bool skipped = []
+        {
+            const char* v = std::getenv("CRUCIBLE_SKIP_CPU_TESTS");
+            return v != nullptr && v[0] != '\0' && !(v[0] == '0' && v[1] == '\0');
+        }();
+        return skipped;
+    }
+
+    // An expectation about CPU cost or timing. Behaves like expect(), except under CRUCIBLE_SKIP_CPU_TESTS, where it
+    // logs the outcome as a skip and never fails.
+    void expectCpu(bool ok, const String& message = {})
+    {
+        if (!cpuChecksSkipped())
+        {
+            expect(ok, message);
+            return;
+        }
+        std::printf("    skipped CPU check (CRUCIBLE_SKIP_CPU_TESTS), would %s: %s\n", ok ? "pass" : "fail",
+                    message.str().c_str());
     }
 
     void logMessage(const String& message) { std::printf("    %s\n", message.str().c_str()); }

@@ -376,7 +376,7 @@ public:
             {
                 const double best = timeModel(modelAt(i));
                 std::printf("  CPU %-9s %.2f %% of a core\n", kLibraryNames[i], best);
-                expect(best <= 1.0, std::string(kLibraryNames[i]) + " " + String(best, 2) + " % of a core");
+                expectCpu(best <= 1.0, std::string(kLibraryNames[i]) + " " + String(best, 2) + " % of a core");
             }
 #endif
         }
