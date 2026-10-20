@@ -62,7 +62,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { name: ASan + UBSan, mode: asan, sanitize: "address;undefined", skip: "audit|older_fx_acceptance$|consumer" }
+          - { name: ASan + UBSan, mode: asan, sanitize: "address;undefined", skip: "audit|older_fx_acceptance$|consumer|^crucible_engine_tests$" }
           - { name: TSan, mode: tsan, sanitize: "thread", skip: "audit|older_fx_acceptance$|consumer|^crucible_engine_tests$" }
     steps:
       - uses: actions/checkout@v4
@@ -89,16 +89,22 @@ jobs:
           # Memory and load every two minutes, so a runner that dies mid-test leaves a trace in the log.
           (while true; do date +%T; free -m | sed -n 2p; uptime; sleep 120; done) &
           ctest --test-dir build --output-on-failure --verbose -E "${{ matrix.skip }}"
-      - name: Threaded suites of crucible_engine_tests (TSan)
-        if: matrix.mode == 'tsan'
+      - name: Targeted suites of crucible_engine_tests
         env:
           TSAN_OPTIONS: flush_memory_ms=20000
           CRUCIBLE_SKIP_HEAVY_TESTS: "1"
         run: |
-          # The whole crucible_engine_tests binary takes hours under TSan: run the suites that use threads.
+          # The whole crucible_engine_tests binary takes hours under a sanitizer (the full runs are local, tools/ci.sh):
+          # run the suites that use threads, and under ASan also the parsers of untrusted input (patches, MIDI files,
+          # impulse responses, wavetables, presets, tuning files).
+          suites=("Engine facade" "Host plumbing" "Views" "Audio-rate modulation" "FormantTableEngine" "Fuzz crash fixes"
+              "Key lock" "Instance-scoped registry" "UI accessors" "Wavetable memory" "Sample unison" "Graph in data" "Sequencer")
+          if [ "${{ matrix.mode }}" = asan ]; then
+            suites+=("Patches, JSON and MIDI files" "Impulse response import" "User wavetables and cloud" "Fuzz state fixes"
+                "Preset metadata, library and migration" "Microtuning, MPE, play modes and CC maps" "Multisample zones")
+          fi
           status=0
-          for suite in "Engine facade" "Host plumbing" "Views" "Audio-rate modulation" "FormantTableEngine" "Fuzz crash fixes" \
-              "Key lock" "Instance-scoped registry" "UI accessors" "Wavetable memory" "Sample unison" "Graph in data" "Sequencer"; do
+          for suite in "${suites[@]}"; do
             build/crucible_engine_tests "$suite" || status=1
           done
           exit $status

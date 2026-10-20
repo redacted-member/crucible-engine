@@ -1525,13 +1525,14 @@ void SynthEngine::pollProgram()
 void SynthEngine::swapProgram()
 {
     graph::Program* old = activeProgram;
+    // The old program is silenced while it is still held: once hold(0) moves on, the control thread may free it.
+    if (old != nullptr)
+        old->killAll();
     activeProgram = incomingProgram;
     incomingProgram = nullptr;
     programHost.hold(0, activeProgram);
     programHost.hold(1, nullptr);
     fx.setPlan(&activeProgram->fxPlan());
-    if (old != nullptr)
-        old->killAll();
     // The classic voices do not sound in a graph product; their notes end with the fade.
     if (graphVoices())
         for (auto& v : voices)
