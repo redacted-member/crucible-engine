@@ -671,6 +671,10 @@ int main(void)
         CHECK(table >= 0);
         crucible_service(NULL);
         crucible_process_events(NULL, l, r, 256, NULL, 0, NULL, 0, NULL);
+        /* the same with a sidechain (mono, then none) */
+        crucible_process_events_aux(engine, l, r, l, NULL, 256, NULL, 0, NULL, 0, &transport);
+        crucible_process_events_aux(engine, l, r, NULL, NULL, 256, NULL, 0, NULL, 0, NULL);
+        crucible_process_events_aux(NULL, l, r, l, r, 256, NULL, 0, NULL, 0, NULL);
     }
     {
         /* struct_size: 0 and short structs give defaults for the fields beyond them */

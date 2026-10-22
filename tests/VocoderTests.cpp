@@ -384,6 +384,26 @@ public:
             }
             crucible_destroy(ce);
             expect(l == with, "C API matches the C++ facade");
+
+            // crucible_process_events_aux: the parameter events of a block and the sidechain in one call.
+            ce = crucible_create(nullptr);
+            crucible_prepare(ce, kRate, 512);
+            crucible_set_param_id(ce, "fx_voc_carrier", 2.0f);
+            crucible_note_on(ce, 48, 1.0f);
+            const CrucibleParamEvent first[] = {{0, crucible_param_index(ce, "fx_voc_on"), 1.0f},
+                                                {0, crucible_param_index(ce, "amp_sustain"), 1.0f}};
+            CrucibleTransport transport{};
+            transport.struct_size = sizeof transport;
+            transport.ppq = -1.0;
+            std::vector<float> l2(l.size()), r2(l.size());
+            for (size_t pos = 0; pos < l2.size(); pos += 512)
+            {
+                const int n = static_cast<int>(std::min<size_t>(512, l2.size() - pos));
+                crucible_process_events_aux(ce, l2.data() + pos, r2.data() + pos, speech.data() + pos, nullptr, n,
+                                            nullptr, 0, pos == 0 ? first : nullptr, pos == 0 ? 2 : 0, &transport);
+            }
+            crucible_destroy(ce);
+            expect(l2 == with, "crucible_process_events_aux applies the block's parameter events and the sidechain");
         }
     }
 

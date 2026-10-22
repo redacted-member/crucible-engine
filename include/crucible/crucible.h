@@ -21,7 +21,8 @@
  *   [any]    any thread, including audio: lock-free, no allocation. Immutable data (parameter metadata) and atomics.
  *
  *   Thread           What it may call
- *   audio            crucible_process, _process_host, _process_aux, _process_events; and every [any] call
+ *   audio            crucible_process, _process_host, _process_aux, _process_events, _process_events_aux; and every
+ *                    [any] call
  *   main             every [main] call and every [any] call (one main thread at a time)
  *   note input       crucible_note_on / _note_off / _pitch_bend / _mod_wheel / _sustain / _all_notes_off / _kill_all_voices
  * [any]: a single-producer queue, so one thread at a time. crucible_midi shares that queue but is [main] any reads of values
@@ -340,6 +341,15 @@ extern "C"
     CRUCIBLE_API void crucible_process_aux(CrucibleEngine* engine, float* left, float* right, const float* aux_left,
                                            const float* aux_right, int num_samples, const CrucibleMidiEvent* events,
                                            int num_events, double bpm, double ppq, int playing);
+    /* [audio] crucible_process_events with a sidechain input: MIDI events, parameter events, the host transport and the
+     * aux buffers in one call, for a plug-in with a sidechain bus. Everything crucible_process_events says about events,
+     * params and transport holds; aux_left / aux_right are as in crucible_process_aux (aux_left NULL: no input, aux_right
+     * NULL: mono). With aux_left NULL it is exactly crucible_process_events. */
+    CRUCIBLE_API void crucible_process_events_aux(CrucibleEngine* engine, float* left, float* right,
+                                                  const float* aux_left, const float* aux_right, int num_samples,
+                                                  const CrucibleMidiEvent* events, int num_events,
+                                                  const CrucibleParamEvent* params, int num_params,
+                                                  const CrucibleTransport* transport);
 
     /* [any] */
     CRUCIBLE_API CrucibleMeter crucible_meter(const CrucibleEngine* engine);

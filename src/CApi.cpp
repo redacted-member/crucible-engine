@@ -574,6 +574,15 @@ extern "C"
                                  const CrucibleMidiEvent* events, int numEvents, const CrucibleParamEvent* params,
                                  int numParams, const CrucibleTransport* transport)
     {
+        crucible_process_events_aux(engine, left, right, nullptr, nullptr, numSamples, events, numEvents, params,
+                                    numParams, transport);
+    }
+
+    void crucible_process_events_aux(CrucibleEngine* engine, float* left, float* right, const float* auxLeft,
+                                     const float* auxRight, int numSamples, const CrucibleMidiEvent* events,
+                                     int numEvents, const CrucibleParamEvent* params, int numParams,
+                                     const CrucibleTransport* transport)
+    {
         if (engine == nullptr || left == nullptr || right == nullptr)
             return;
         if (params != nullptr)
@@ -583,7 +592,7 @@ extern "C"
         const int numMidi = midi != nullptr ? std::min(numEvents, CRUCIBLE_MAX_EVENTS_PER_BLOCK) : 0;
         if (transport == nullptr || transport->struct_size == 0) // size 0: no transport, not an error
         {
-            engine->engine.process(left, right, numSamples, midi, numMidi);
+            engine->engine.process(left, right, numSamples, midi, numMidi, nullptr, auxLeft, auxRight);
             return;
         }
         crucible::SeqHostTime host;
@@ -593,7 +602,7 @@ extern "C"
             setHostPpq(host, transport->ppq);
         if (CRUCIBLE_HAS(transport, playing))
             host.playing = transport->playing != 0;
-        engine->engine.process(left, right, numSamples, midi, numMidi, &host);
+        engine->engine.process(left, right, numSamples, midi, numMidi, &host, auxLeft, auxRight);
     }
 
     void crucible_service(CrucibleEngine* engine)

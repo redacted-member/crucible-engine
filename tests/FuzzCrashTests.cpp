@@ -114,6 +114,8 @@ public:
                                                                        0, &t);
                                                crucible_process_aux(eng->e, l.data(), r.data(), nullptr, nullptr, 256,
                                                                     nullptr, 0, cc.bpm, cc.ppq, 1);
+                                               crucible_process_events_aux(eng->e, l.data(), r.data(), l.data(),
+                                                                           nullptr, 256, nullptr, 0, nullptr, 0, &t);
                                            });
             expect(ok, std::string("returns in time: ") + c.name);
             if (!ok)
