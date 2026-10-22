@@ -132,6 +132,13 @@ public:
     // without re-preparing, allocating or locking. Audio thread (between process calls) or a control thread while no process
     // call runs; never concurrently with process().
     void reset();
+    // Tells the engine the host renders offline (CLAP render mode, VST3 kOffline), or in real time again. While set,
+    // fx.convolution and fx.cabinet wait on the audio thread for their background builds at any quality (Quality::High
+    // always does), so an offline render right after loadImpulseResponse or a cabinet change does not depend on thread
+    // timing. Never set it for live playback: the audio thread may then block for a build. Any thread; takes effect from
+    // the next block.
+    void setRenderOffline(bool offline) { core->engine().setRenderOffline(offline); }
+    bool isRenderOffline() const { return core->engine().isRenderOffline(); }
 
     // ---- Parameters (any control thread). Values are natural units (Hz, seconds, dB, choice index...).
     bool setParam(int index, float natural);           // clamped to the range; false for a bad index

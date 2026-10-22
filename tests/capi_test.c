@@ -675,6 +675,14 @@ int main(void)
         crucible_process_events_aux(engine, l, r, l, NULL, 256, NULL, 0, NULL, 0, &transport);
         crucible_process_events_aux(engine, l, r, NULL, NULL, 256, NULL, 0, NULL, 0, NULL);
         crucible_process_events_aux(NULL, l, r, l, r, 256, NULL, 0, NULL, 0, NULL);
+        /* render offline: off by default, settable, NULL-safe */
+        CHECK(crucible_render_offline(engine) == 0);
+        crucible_set_render_offline(engine, 1);
+        CHECK(crucible_render_offline(engine) == 1);
+        crucible_set_render_offline(engine, 0);
+        CHECK(crucible_render_offline(engine) == 0);
+        crucible_set_render_offline(NULL, 1);
+        CHECK(crucible_render_offline(NULL) == 0);
     }
     {
         /* struct_size: 0 and short structs give defaults for the fields beyond them */

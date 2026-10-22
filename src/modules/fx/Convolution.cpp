@@ -7,9 +7,9 @@
 // with a try-lock (never waits), takes finished sets from a one-slot mailbox with an atomic exchange, crossfades from the
 // set in use to the new one (after feeding it the recent input, so that its output is the one a kernel that had always been
 // there would give), and hands retired sets back to the builder through a lock-free ring, which frees them. The
-// audio thread therefore allocates nothing and takes no lock. At High quality (offline rendering) the audio thread waits
-// for the builder after posting, so a render does not depend on thread timing. Where there are no background threads
-// (LinearPhaseWorker::threadless(), WebAssembly without pthreads) the builder runs only inside LinearPhaseWorker::pump(),
+// audio thread therefore allocates nothing and takes no lock. At High quality (offline rendering), and while the host
+// renders offline (Engine::setRenderOffline), the audio thread waits for the builder after posting, so a render does
+// not depend on thread timing. Where there are no background threads (LinearPhaseWorker::threadless(), WebAssembly without pthreads) the builder runs only inside LinearPhaseWorker::pump(),
 // which Engine::service() calls on the control side; the audio thread never pumps and never waits there, not even offline: a
 // posted request is built by the next service() call and its kernel is taken at the start of the block after that.
 //
@@ -189,7 +189,8 @@ public:
             seenValid = false;
         }
         sr = c.sampleRate;
-        offline = c.quality == Quality::High;
+        highQuality = c.quality == Quality::High;
+        renderOffline = c.renderOffline;
         fadeLength = std::max(16, static_cast<int>(std::lround(kFadeSeconds * sr)));
         fadeTable.assign(static_cast<size_t>(fadeLength) + 1, 0.0f);
         for (int i = 0; i <= fadeLength; ++i)
@@ -515,7 +516,7 @@ private:
                     const long reach = std::min<long>(
                         {static_cast<long>(incoming->kernelLength) + incoming->latency, historySize, position});
                     primed = position - reach;
-                    if (offline)
+                    if (offlineNow())
                         advancePriming(position);
                 }
             }
@@ -542,8 +543,13 @@ private:
         }
     }
 
+    // High quality, or the host renders offline (ModuleContext::renderOffline).
+    bool offlineNow() const
+    {
+        return highQuality || (renderOffline != nullptr && renderOffline->load(std::memory_order_relaxed));
+    }
     // Offline renders wait for the builder thread; without threads there is nothing to wait for on the audio thread.
-    bool offlineWait() const { return offline && !crucible::fx::LinearPhaseWorker::threadless(); }
+    bool offlineWait() const { return offlineNow() && !crucible::fx::LinearPhaseWorker::threadless(); }
 
     void waitForBuilder()
     {
@@ -717,7 +723,8 @@ private:
     // ---- state
     const int mix, mode, trim, length, reverse, stretch, fadeIn, fadeOut, balance, lowCut, highCut, predelay, width, outDb;
     double sr = 48000.0;
-    bool offline = false;
+    bool highQuality = false;
+    const std::atomic<bool>* renderOffline = nullptr;
     bool dirty = false;
 
     // Shared with the control thread.

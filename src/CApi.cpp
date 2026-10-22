@@ -645,6 +645,17 @@ extern "C"
             });
     }
 
+    void crucible_set_render_offline(CrucibleEngine* engine, int offline)
+    {
+        if (engine != nullptr)
+            engine->engine.setRenderOffline(offline != 0);
+    }
+
+    int crucible_render_offline(const CrucibleEngine* engine)
+    {
+        return engine != nullptr && engine->engine.isRenderOffline() ? 1 : 0;
+    }
+
     void crucible_process_aux(CrucibleEngine* engine, float* left, float* right, const float* auxLeft, const float* auxRight,
                               int numSamples, const CrucibleMidiEvent* events, int numEvents, double bpm, double ppq,
                               int playing)

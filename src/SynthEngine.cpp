@@ -344,6 +344,7 @@ void SynthEngine::prepare(double rate)
     context.quality = cfg.quality;
     context.oversampling = cfg.oversampling;
     context.seed = cfg.seed;
+    context.renderOffline = &renderOffline;
     fx.prepare(context);
     fadeLength = std::max(1, static_cast<int>(0.010 * rate));
     fade = Fade::Idle;
@@ -1454,6 +1455,7 @@ void SynthEngine::installProgram()
     context.quality = cfg.quality;
     context.oversampling = cfg.oversampling;
     context.seed = cfg.seed;
+    context.renderOffline = &renderOffline;
     context.batchAnalogFilters = cfg.batchAnalogFilters;
     auto program = std::make_unique<graph::Program>(productNow, fx, context, cfg.seed, &classicHost);
     if (!program->ok())
@@ -1490,6 +1492,7 @@ bool SynthEngine::reconfigure(std::shared_ptr<const graph::CompiledProduct> prod
     context.quality = cfg.quality;
     context.oversampling = cfg.oversampling;
     context.seed = cfg.seed;
+    context.renderOffline = &renderOffline;
     context.batchAnalogFilters = cfg.batchAnalogFilters;
     auto program = std::make_unique<graph::Program>(product, fx, context, cfg.seed, &classicHost);
     if (!program->ok())

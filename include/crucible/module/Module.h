@@ -12,6 +12,7 @@
 #include <crucible/ParameterMap.h>
 #include <crucible/module/Oscillator.h>
 
+#include <atomic>
 #include <cstdint>
 #include <functional>
 #include <map>
@@ -78,6 +79,10 @@ struct ModuleContext
     std::uint32_t seed = 1;
     // Graph voices run the analog filters of voice pairs as one four-lane object (see EngineConfig::batchAnalogFilters).
     bool batchAnalogFilters = true;
+    // The host renders offline (Engine::setRenderOffline): effects that hand work to a background thread wait for it on
+    // the audio thread, at any quality, so the output does not depend on thread timing. Owned by the engine, read with
+    // a relaxed load at block rate; null for none (Quality::High implies it anyway).
+    const std::atomic<bool>* renderOffline = nullptr;
 };
 
 // What an effect reads each control block: its own parameters by local index (the order of

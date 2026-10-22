@@ -335,6 +335,14 @@ extern "C"
      * thread between process calls; never concurrently with a process call. Does not re-prepare. Call it on activate, on a
      * transport jump and on bypass. Parameters, patches, scenes and loaded content are kept. */
     CRUCIBLE_API void crucible_reset(CrucibleEngine* engine);
+    /* [any] 1 while the host renders offline (CLAP render mode offline, VST3 kOffline, a bounce or a test render), 0 for
+     * real time again (the default). fx.convolution and fx.cabinet build their kernels on a background thread; in real
+     * time the audio thread never waits for it, so the block at which a new impulse response (crucible_load_ir) or cabinet
+     * takes effect depends on thread timing. While offline is set they wait on the audio thread for every build, at any
+     * quality, and a render is the same on every run and machine (quality 2, high, always waits). Never set it for live
+     * playback: a block may then block for the length of a build. Takes effect from the next process call. */
+    CRUCIBLE_API void crucible_set_render_offline(CrucibleEngine* engine, int offline);
+    CRUCIBLE_API int crucible_render_offline(const CrucibleEngine* engine);
 
     /* [audio] Same with a sidechain input (the vocoder's modulator): aux_left / aux_right hold num_samples samples each,
      * aux_right may be NULL for a mono input, aux_left NULL means no input. bpm <= 0 and ppq < 0 mean unknown. */

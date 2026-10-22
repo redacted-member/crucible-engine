@@ -12,8 +12,9 @@
 // come back through a one-slot mailbox (atomic exchange); the audio thread runs a new set on the live input until its
 // convolver holds a whole kernel's worth of signal (output discarded), then crossfades from the set in use to it, and hands
 // retired sets back to the builder through a lock-free ring, which frees them. The audio thread allocates nothing and takes
-// no lock. At High quality (offline rendering), and for the first set after prepare() at any quality, the audio thread
-// waits for the builder after posting, so a render does not depend on thread timing. Where there are no background threads (LinearPhaseWorker::threadless()) the builder runs inside
+// no lock. At High quality (offline rendering), while the host renders offline (Engine::setRenderOffline), and for the
+// first set after prepare() at any quality, the audio thread waits for the builder after posting, so a render does not
+// depend on thread timing. Where there are no background threads (LinearPhaseWorker::threadless()) the builder runs inside
 // LinearPhaseWorker::pump(), called by Engine::service() on the control side.
 //
 // Until the first set is ready the module passes its input through; a set fades in over 40 ms once primed.
@@ -153,7 +154,8 @@ public:
             minSerial = postedRequest.serial + 1;
         }
         sr = c.sampleRate;
-        offline = c.quality == Quality::High;
+        highQuality = c.quality == Quality::High;
+        renderOffline = c.renderOffline;
         fadeLength = std::max(16, static_cast<int>(std::lround(kFadeSeconds * sr)));
         fadeTable.assign(static_cast<size_t>(fadeLength) + 1, 0.0f);
         for (int i = 0; i <= fadeLength; ++i)
@@ -357,6 +359,8 @@ private:
             // effect would depend on thread timing.
             // The first set after prepare() (or a rate change) is waited for at every quality: it takes a few milliseconds
             // once, and the output of a render then does not depend on when the builder finishes.
+            const bool offline =
+                highQuality || (renderOffline != nullptr && renderOffline->load(std::memory_order_relaxed));
             const bool wait = (offline || first) && !crucible::fx::LinearPhaseWorker::threadless();
             bool accepted = requests.tryPost(post);
             while (!accepted && wait)
@@ -567,7 +571,8 @@ private:
     // ---- state
     const int mix, cabinet, micPosition, micDistance, lowCut, highCut, outDb;
     double sr = 48000.0;
-    bool offline = false;
+    bool highQuality = false;
+    const std::atomic<bool>* renderOffline = nullptr; // ModuleContext::renderOffline
     bool dirty = false;
 
     KernelSet* active = nullptr;

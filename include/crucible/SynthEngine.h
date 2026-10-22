@@ -66,6 +66,10 @@ public:
     // Silences everything at once: voices, held notes and the sustain pedal, and every effect's state (delay lines,
     // reverb tanks, convolution history, filters). No fade, no allocation; not while rendering.
     void reset();
+    // The host renders offline (CLAP render mode, VST3 kOffline): effects with background builds wait for them on the
+    // audio thread at any quality. Any thread; takes effect from the next block.
+    void setRenderOffline(bool offline) { renderOffline.store(offline, std::memory_order_relaxed); }
+    bool isRenderOffline() const { return renderOffline.load(std::memory_order_relaxed); }
     void setSustainPedal(bool down);
     void setPitchBendNormalised(float bend) { pitchBendNorm = bend; }
     // MPE member channels and poly aftertouch (audio thread).
@@ -475,6 +479,7 @@ private:
     double driftTimer = 0.0;
     std::uint32_t vecRng = 1;
     std::atomic<bool> overlayLive{false};
+    std::atomic<bool> renderOffline{false}; // ModuleContext::renderOffline points here
     std::atomic<float> shownX{0.5f}, shownY{0.5f};
     bool lastLive = false;
     int controlPhase = 0; // samples rendered into the current 32-sample control cell

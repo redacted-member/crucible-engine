@@ -9,6 +9,7 @@
 #include "TestSupport.h"
 
 #include <crucible/Engine.h>
+#include <crucible/crucible.h>
 #include <crucible/Patch.h>
 #include <crucible/Fx.h>
 #include <crucible/fx/IrEdit.h>
@@ -200,6 +201,7 @@ public:
         commonZipperAndClick();
         commonRandomExtremes();
         commonOfflineDeterminism();
+        renderOfflineFlag();
     }
 
 private:
@@ -701,6 +703,65 @@ private:
         const Samples first = render(0);
         const Samples second = render(1);
         const Samples third = render(2);
+        expect(first.size() == second.size() && std::memcmp(first.data(), second.data(), first.size() * sizeof(float)) == 0,
+               "render 1 equals render 2");
+        expect(first.size() == third.size() && std::memcmp(first.data(), third.data(), first.size() * sizeof(float)) == 0,
+               "render 1 equals render 3");
+    }
+
+    void renderOfflineFlag()
+    {
+        beginTest("crucible_set_render_offline: at Standard quality a render right after crucible_load_ir, with cabinet "
+                  "changes, does not depend on builder-thread timing");
+        namespace fs = std::filesystem;
+        const fs::path dir = fs::temp_directory_path() / "crucible_cx_render_offline_test";
+        fs::create_directories(dir);
+        const std::string path = (dir / "ir.wav").string();
+        AudioData data;
+        data.sampleRate = 44100.0;
+        data.channels.push_back(decayingNoise(30000, 31, 0.3f));
+        data.channels.push_back(decayingNoise(30000, 32, 0.3f));
+        expect(writeWavFile(path, data, 32), "wrote test file");
+
+        const auto render = [&](unsigned jitterSeed)
+        {
+            CrucibleConfig config;
+            crucible_config_init(&config);
+            config.quality = 1;
+            CrucibleEngine* ce = crucible_create(&config);
+            crucible_prepare(ce, kRate, 256);
+            expect(crucible_render_offline(ce) == 0, "real time by default");
+            crucible_set_render_offline(ce, 1);
+            expect(crucible_render_offline(ce) == 1, "offline once set");
+            crucible_set_param_id(ce, "amp_sustain", 1.0f);
+            crucible_set_param_id(ce, "fx_cx_on", 1.0f);
+            crucible_set_param_id(ce, "fx_cx_mix", 1.0f);
+            crucible_set_param_id(ce, "fx_cab_on", 1.0f);
+            char error[256] = "";
+            expect(crucible_load_ir(ce, "fx.convolution", path.c_str(), error, sizeof error) == 1, error);
+            crucible_note_on(ce, 45, 1.0f);
+            std::mt19937 jitter(jitterSeed);
+            Samples out;
+            std::vector<float> l(256), r(256);
+            for (int b = 0; b < 400; ++b)
+            {
+                if (b % 100 == 50)
+                    crucible_set_param_id(ce, "fx_cab_cabinet", static_cast<float>((b / 100) % 4));
+                if (jitterSeed != 0 && jitter() % 3 == 0)
+                    std::this_thread::sleep_for(std::chrono::microseconds(jitter() % 1500));
+                crucible_process(ce, l.data(), r.data(), 256, nullptr, 0);
+                out.insert(out.end(), l.begin(), l.end());
+            }
+            crucible_destroy(ce);
+            return out;
+        };
+        const Samples first = render(0);
+        const Samples second = render(1);
+        const Samples third = render(2);
+        double energy = 0.0;
+        for (const float v : first)
+            energy += static_cast<double>(v) * v;
+        expect(energy > 0.0, "the render is not silent");
         expect(first.size() == second.size() && std::memcmp(first.data(), second.data(), first.size() * sizeof(float)) == 0,
                "render 1 equals render 2");
         expect(first.size() == third.size() && std::memcmp(first.data(), third.data(), first.size() * sizeof(float)) == 0,
