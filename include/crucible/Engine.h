@@ -213,6 +213,7 @@ public:
 
     // ---- Scenes (control thread). Slots 0..11.
     SceneBank& scenes() { return sceneBank; }
+    const SceneBank& scenes() const { return sceneBank; }
     void storeScene(int slot);
     bool recallScene(int slot);
     bool morphScenes(int slotA, int slotB, float t); // writes the morphed values into the parameters

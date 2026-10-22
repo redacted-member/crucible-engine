@@ -685,6 +685,49 @@ int main(void)
         CHECK(crucible_render_offline(NULL) == 0);
     }
     {
+        /* scenes: store, recall, morph, clear; recall and morph report CRUCIBLE_SOURCE_INTERNAL changes */
+        enum
+        {
+            CAP = 512
+        };
+        int idx[CAP], src[CAP], n, k, seen = 0;
+        const int cutoff = crucible_param_index(engine, "filter_cutoff");
+        const int wave = crucible_param_index(engine, "osc1_type");
+        CHECK(cutoff >= 0 && wave >= 0);
+        CHECK(crucible_scene_filled(engine, 4) == 0 && crucible_recall_scene(engine, 4) == 0);
+        CHECK(crucible_store_scene(engine, CRUCIBLE_SCENES) == 0 && crucible_store_scene(engine, -1) == 0);
+        crucible_set_param(engine, cutoff, 200.0f);
+        crucible_set_param(engine, wave, 0.0f);
+        CHECK(crucible_store_scene(engine, 4) == 1 && crucible_scene_filled(engine, 4) == 1);
+        crucible_set_param(engine, cutoff, 8000.0f);
+        crucible_set_param(engine, wave, 1.0f);
+        CHECK(crucible_store_scene(engine, 5) == 1);
+        CHECK(crucible_morph_scenes(engine, 4, 6, 0.5f) == 0); /* 6 is empty */
+        CHECK(crucible_morph_scenes(engine, 4, 5, 0.0f / 0.0f) == 0);
+        crucible_param_changes(engine, idx, src, CAP);
+        CHECK(crucible_recall_scene(engine, 4) == 1);
+        CHECK(fabsf(crucible_get_param(engine, cutoff) - 200.0f) < 1.0e-2f && crucible_get_param(engine, wave) == 0.0f);
+        n = crucible_param_changes(engine, idx, src, CAP);
+        for (k = 0; k < n; ++k)
+            if (idx[k] == cutoff)
+                seen = src[k] == CRUCIBLE_SOURCE_INTERNAL;
+        CHECK(seen);
+        /* a morph: the cutoff lies strictly between, the choice switches at t = 0.5 */
+        CHECK(crucible_morph_scenes(engine, 4, 5, 0.25f) == 1);
+        CHECK(crucible_get_param(engine, cutoff) > 200.0f && crucible_get_param(engine, cutoff) < 8000.0f &&
+              crucible_get_param(engine, wave) == 0.0f);
+        CHECK(crucible_morph_scenes(engine, 4, 5, 0.5f) == 1 && crucible_get_param(engine, wave) == 1.0f);
+        CHECK(crucible_morph_scenes(engine, 4, 5, 2.0f) == 1 && fabsf(crucible_get_param(engine, cutoff) - 8000.0f) < 1.0f);
+        crucible_clear_scene(engine, 5);
+        crucible_clear_scene(engine, 99);
+        CHECK(crucible_scene_filled(engine, 5) == 0 && crucible_scene_filled(engine, 99) == 0);
+        CHECK(crucible_morph_scenes(engine, 4, 5, 0.5f) == 0);
+        crucible_clear_scene(engine, 4);
+        CHECK(crucible_store_scene(NULL, 0) == 0 && crucible_recall_scene(NULL, 0) == 0 &&
+              crucible_morph_scenes(NULL, 0, 1, 0.5f) == 0 && crucible_scene_filled(NULL, 0) == 0);
+        crucible_clear_scene(NULL, 0);
+    }
+    {
         /* struct_size: 0 and short structs give defaults for the fields beyond them */
         CrucibleConfig legacy;
         CrucibleEngine* a;

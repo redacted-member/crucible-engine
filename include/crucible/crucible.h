@@ -443,6 +443,25 @@ extern "C"
     CRUCIBLE_API int crucible_load_patch_file(CrucibleEngine* engine, const char* path, char* error_buffer,
                                               size_t error_size);
 
+/* Scenes: CRUCIBLE_SCENES slots (0..11), each a snapshot of the scene-managed parameters (CrucibleParamMeta.scene; the
+ * scene_* and vector_* parameters themselves are not), saved in patches. All [main]; safe while the audio thread
+ * processes. The scene_morph parameter morphs between the slots that scene_a and scene_b select on the audio thread
+ * (see docs/README-features.md, "Scenes"); the calls below write parameter values instead, reported through
+ * crucible_param_changes with CRUCIBLE_SOURCE_INTERNAL. */
+#define CRUCIBLE_SCENES 12
+    /* Stores the current parameter values in slot; 1 on success, 0 for a bad slot. */
+    CRUCIBLE_API int crucible_store_scene(CrucibleEngine* engine, int slot);
+    /* Sets the scene-managed parameters to the values stored in slot; 1 on success, 0 for a bad or empty slot. */
+    CRUCIBLE_API int crucible_recall_scene(CrucibleEngine* engine, int slot);
+    /* Sets the scene-managed parameters to a morph between slots a (t = 0) and b (t = 1, clamped): floats blend in
+     * normalised (skewed) space, choices, ints and bools switch to b at t >= 0.5. 1 on success, 0 when a slot is bad or
+     * empty. */
+    CRUCIBLE_API int crucible_morph_scenes(CrucibleEngine* engine, int slot_a, int slot_b, float t);
+    /* Empties slot (a bad slot is ignored). */
+    CRUCIBLE_API void crucible_clear_scene(CrucibleEngine* engine, int slot);
+    /* 1 when slot holds a scene, 0 when it is empty or bad. */
+    CRUCIBLE_API int crucible_scene_filled(const CrucibleEngine* engine, int slot);
+
 /* User content. All [main] (they decode files and allocate); safe while the audio thread processes. */
 /* What a wavetable load did. Set struct_size to sizeof(CrucibleWavetableInfo) (fields beyond it are left alone). A user
  * table is always CRUCIBLE_WAVETABLE_FRAMES frames of 2048 samples: fewer source frames are crossfaded to fill it, more are

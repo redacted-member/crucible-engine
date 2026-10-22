@@ -645,6 +645,49 @@ extern "C"
             });
     }
 
+    static_assert(CRUCIBLE_SCENES == crucible::kNumScenes, "crucible.h and Scenes.h disagree on the scene count");
+
+    int crucible_store_scene(CrucibleEngine* engine, int slot)
+    {
+        if (engine == nullptr || slot < 0 || slot >= crucible::kNumScenes)
+            return 0;
+        return guarded<int>(0,
+                            [&]
+                            {
+                                engine->engine.storeScene(slot);
+                                return 1;
+                            });
+    }
+
+    int crucible_recall_scene(CrucibleEngine* engine, int slot)
+    {
+        if (engine == nullptr)
+            return 0;
+        return guarded<int>(0, [&] { return engine->engine.recallScene(slot) ? 1 : 0; });
+    }
+
+    int crucible_morph_scenes(CrucibleEngine* engine, int slotA, int slotB, float t)
+    {
+        if (engine == nullptr || !std::isfinite(t))
+            return 0;
+        return guarded<int>(0, [&] { return engine->engine.morphScenes(slotA, slotB, t) ? 1 : 0; });
+    }
+
+    void crucible_clear_scene(CrucibleEngine* engine, int slot)
+    {
+        guardedVoid(
+            [&]
+            {
+                if (engine != nullptr)
+                    engine->engine.scenes().clear(slot);
+            });
+    }
+
+    int crucible_scene_filled(const CrucibleEngine* engine, int slot)
+    {
+        return engine != nullptr && engine->engine.scenes().isFilled(slot) ? 1 : 0;
+    }
+
     void crucible_set_render_offline(CrucibleEngine* engine, int offline)
     {
         if (engine != nullptr)
