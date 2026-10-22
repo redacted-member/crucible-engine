@@ -3,6 +3,16 @@
 Changes that alter the rendered samples of existing patches. Every entry names the commit that regenerated the
 golden fingerprints (`tests/golden/renders.txt`) and the bit-exact hashes (`tests/golden/bitexact.txt`).
 
+## `scene_morph` morphs between scene A and scene B (maintainer decision)
+
+* **What changed.** With `vector_on` off, `scene_morph` above 0 and the slots of `scene_a` and `scene_b` both stored, the
+  scene-managed parameters now follow the morph from scene A to scene B (the vector field's overlay with corners B, A, B, A;
+  `docs/README-features.md`, "Scenes"). Before, `scene_morph` was only the `SceneMorph` modulation source.
+* **Who hears it.** Only patches that store scenes and leave `scene_morph` above 0. `scene_morph` defaults to 0, and no
+  golden scenario stores scenes with a non-zero morph: `tests/golden/renders.txt` and `tests/golden/bitexact.txt` are
+  unchanged (not regenerated).
+* **Tests.** `Vector field and clip transport` ("scene_morph morphs scene A towards scene B").
+
 ## The twelve first-generation effects are removed (maintainer decision
 
 * **What changed.** `fx.drive`, `fx.chorus`, `fx.flanger`, `fx.phaser`, `fx.delay`, `fx.reverb`, `fx.comp`, `fx.eq`, `fx.peq`,

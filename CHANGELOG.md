@@ -6,6 +6,15 @@ All notable changes are listed here. The format follows Keep a Changelog; versio
 ## [Unreleased]
 
 ### Added
+- C API gaps found by building a plug-in on the plain C API (all additive, `CRUCIBLE_API_VERSION` unchanged):
+  `crucible_process_events_aux` takes MIDI events, parameter events, the transport and a sidechain in one call (a plug-in
+  with a sidechain bus no longer needs a zero-length `crucible_process_events` before `crucible_process_aux`);
+  `crucible_store_scene` / `_recall_scene` / `_morph_scenes` / `_clear_scene` / `_scene_filled` and `CRUCIBLE_SCENES`
+  expose the scene slots; `crucible_set_render_offline` / `crucible_render_offline` (C++ `Engine::setRenderOffline`,
+  `ModuleContext::renderOffline`) let a host that renders offline make `fx.convolution` and `fx.cabinet` wait for their
+  background builds at any quality, so a Standard-quality render right after `crucible_load_ir` or a cabinet change no
+  longer depends on thread timing (default off: real time unchanged). Tests: `crucible_capi_test`, `Vocoder`,
+  `Convolution`, `Vector field and clip transport`.
 - `SECURITY.md` (private vulnerability reporting), `.gitattributes` (vendored and generated files), pyproject metadata (SPDX licence, classifiers, project URLs).
 
 ### Fixed
@@ -16,6 +25,11 @@ All notable changes are listed here. The format follows Keep a Changelog; versio
 - The twelve first-generation effects (maintainer decision, before the v1 freeze): `fx.drive`, `fx.chorus`, `fx.flanger`, `fx.phaser`, `fx.delay`, `fx.reverb`, `fx.comp`, `fx.eq`, `fx.peq`, `fx.dimension`, `fx.gate` and `fx.conv`, with their DSP classes, the `FxRack` / `FxParams` test rack, the built-in convolver rooms, the legacy single impulse response (`UserImpulseResponse`, `Engine::loadImpulseResponse*`, the patch field `impulseResponse`) and the five fixed modulation destinations FX Drive Amount, FX Chorus Mix, FX Delay Mix, FX Reverb Mix and FX Reverb Size. The successors are `fx.saturator`, `fx.ensemble`, `fx.flanger2`, `fx.phaser2`, `fx.delay_pro`, `fx.reverb_algo`, `fx.comp_clean`, `fx.eq_pro`, `fx.gate2` and `fx.convolution`. `tests/golden/param_order.txt` shrank once (allowed before v1, never after); the surviving rack effects were renumbered (`fx_pos_*` slots 1 to 8, pages `fx_order_1` to `fx_order_3`); products and the skeleton use the successors; the two default-product scenarios `classic_fx` and `new_fx` were re-recorded (`docs/SOUND_CHANGES.md`). The generic `status` / `supersededBy` mechanism (`ModuleStatus::Legacy`, `crucible_module_meta` `legacy` / `superseded_by`) stays for retirements after v1; no built-in module is legacy now.
 
 ### Changed
+- `scene_morph` now morphs (maintainer decision): with `vector_on` off, `scene_morph` above 0 and the slots of `scene_a` and
+  `scene_b` both stored, the scene-managed parameters follow the morph from scene A to scene B on the audio thread, through
+  the vector field's overlay (no parameter writes, no automation; floats in normalised space, choices switch at 0.5, as
+  `crucible_morph_scenes`). It used to be only the `SceneMorph` modulation source, which it still is. A patch with stored
+  scenes and `scene_morph` above 0 now sounds different (docs/SOUND_CHANGES.md); golden renders are unchanged.
 - The fuzz harness hardware profile is selected with `--hardware-preset`; documentation and comments use neutral wording for the public release.
 - Older-fx acceptance, `fx_mx_gain` zipper: judged against the same maximizer fed the same gain change smoothly per sample on its input (module's own gain smoothing), so the intended gain-reduction motion cancels; -90 dB unchanged. The maximizer gain smoothing is now 3 x 20 ms (was 3 x 8 ms; a 512-sample block step was at -89.7 / -88.4 dB, 12 ms still -86 dB on the square), so `fx_mx_gain` passes at blocks 1, 7 and 512 and its known-fail entry is gone; constant gain is bit-identical. The known-fail list is now empty, and an empty list no longer inverts the known-fail ctest.
 - Smoothed effect controls now always end exactly on their target: a float one-pole step that rounds to nothing (before the relative-epsilon snap fired) left dynamics threshold / mix / makeup, maximizer ceiling / gain / clip share, reverb mix / width / size / density / mod depth and the Pro EQ output / mix / range stuck a few ulps short, so the moving per-sample paths ran forever and constant settings never returned to the bit-identical static path (the maximizer could exceed its ceiling by about 7e-6). `onePoleStepSnap` (fx/Smoothing.h) lands on the target when a step makes no progress; the reverb and Pro EQ smoothers keep double state so that landing is never a step. Tests: `Smoother settle`.

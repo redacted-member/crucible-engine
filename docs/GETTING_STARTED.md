@@ -21,13 +21,16 @@ VST3. It runs as the ctest `instrument_skeleton`. Copy it and its product JSON t
 
 | Thread | Calls |
 | --- | --- |
-| audio | `crucible_process`, `crucible_process_host`, `crucible_process_aux`, `crucible_process_events`, `crucible_reset` (between blocks) |
+| audio | `crucible_process`, `crucible_process_host`, `crucible_process_aux`, `crucible_process_events`, `crucible_process_events_aux`, `crucible_reset` (between blocks) |
 | main | `crucible_set_param*`, `crucible_midi`, `crucible_service`, `crucible_param_changes`, `crucible_latency_samples`, patches, `crucible_load_ir`, wavetable loads, view find / subscribe, `crucible_view_read` of a pulled view |
-| any | `crucible_note_on` / `_note_off` / `_pitch_bend` / `_mod_wheel` / `_sustain` / `_all_notes_off` (one thread at a time), `crucible_get_param`, `crucible_modulated_value`, `crucible_meter`, `crucible_tail_seconds`, `crucible_service_pending`, parameter metadata, `crucible_view_read` of a pushed (live) view |
+| any | `crucible_set_render_offline`, `crucible_note_on` / `_note_off` / `_pitch_bend` / `_mod_wheel` / `_sustain` / `_all_notes_off` (one thread at a time), `crucible_get_param`, `crucible_modulated_value`, `crucible_meter`, `crucible_tail_seconds`, `crucible_service_pending`, parameter metadata, `crucible_view_read` of a pushed (live) view |
 
 In a plug-in, host automation and note events reach the engine on the audio thread, so turn them into
-`CrucibleParamEvent` and `CrucibleMidiEvent` and pass them to `crucible_process_events`. Do not call
-`crucible_set_param` from the audio callback. `crucible_service_pending(engine)` (any thread) says whether a `crucible_service` call has work to do, so a wrapper can ask its host for a main-thread callback; an offline bounce calls `crucible_service` between blocks.
+`CrucibleParamEvent` and `CrucibleMidiEvent` and pass them to `crucible_process_events` (with a sidechain bus,
+`crucible_process_events_aux`, which also takes the aux buffers). Do not call
+`crucible_set_param` from the audio callback. When the host renders offline (CLAP render mode, VST3 `kOffline`), call
+`crucible_set_render_offline(engine, 1)` so `fx.convolution` and `fx.cabinet` wait for their background builds and the
+render does not depend on thread timing; set it back to 0 for real time. `crucible_service_pending(engine)` (any thread) says whether a `crucible_service` call has work to do, so a wrapper can ask its host for a main-thread callback; an offline bounce calls `crucible_service` between blocks.
 
 ## Host parameters
 

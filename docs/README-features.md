@@ -917,9 +917,26 @@ from the macro a different amount and polarity to build one knob that sweeps a w
 
 ### 10.4 Scenes
 
-There are twelve scene slots. A scene stores a snapshot of the sound and can be recalled into a slot. `scene_a` and `scene_b`
-choose the two scenes, and the scene morph (`SceneMorph` source) moves the sound between them.
-`SceneBank::serialise()` returns each scene as a plain text record, locale independent, for saving alongside a patch.
+There are twelve scene slots. A scene stores a snapshot of the sound (every parameter flagged `scene`) and is saved in the
+patch. `crucible_store_scene`, `crucible_recall_scene`, `crucible_clear_scene` and `crucible_scene_filled` (C++:
+`Engine::storeScene`, `recallScene`, `scenes()`) manage the slots; `crucible_morph_scenes(engine, a, b, t)` writes a morph
+between two slots into the parameters (reported to the host as internal changes).
+
+`scene_a` and `scene_b` choose two scenes and `scene_morph` moves the sound between them on the audio thread: at 0 the
+parameters play as set, above 0 (with both slots stored) the scene-managed parameters follow the morph from scene A
+(towards 0) to scene B (at 1), so leaving 0 jumps from the parameters to scene A unless A was recalled first; floats blend in normalised space, choices, ints and bools switch to B at 0.5. Like the
+vector field it is an overlay, so it writes no parameter and produces no automation; `crucible_modulated_value` shows the
+morphed values. While `vector_on` is set the vector field owns the scenes instead. `scene_morph` is also the `SceneMorph`
+modulation source. `SceneBank::serialise()` returns each scene as a plain text record, locale independent.
+
+```c
+crucible_store_scene(engine, 0);                     /* [main] the sound as it is now */
+crucible_set_param_id(engine, "filter_cutoff", 8000.0f);
+crucible_store_scene(engine, 1);
+crucible_set_param_id(engine, "scene_a", 0.0f);      /* slots are choices 0..11 */
+crucible_set_param_id(engine, "scene_b", 1.0f);
+crucible_set_param_id(engine, "scene_morph", 0.5f);  /* halfway, automatable */
+```
 
 ### 10.5 Sequencer and arpeggiator
 
