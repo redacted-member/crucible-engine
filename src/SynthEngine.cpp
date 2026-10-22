@@ -222,6 +222,15 @@ SynthEngine::SynthEngine(const EngineConfig& config)
     idx.stripL = require("strip_l");
     idx.stripR = require("strip_r");
     idx.morph = model.indexOf("scene_morph");
+    vec.morph = idx.morph;
+    vec.sceneA = model.indexOf("scene_a");
+    vec.sceneB = model.indexOf("scene_b");
+    {
+        const auto& targets = model.modTargets();
+        for (size_t k = 0; k < targets.size(); ++k)
+            if (vec.morph >= 0 && targets[k] == vec.morph)
+                vec.targetMorph = static_cast<int>(k);
+    }
 
     idx.voiceMode = require("voice_mode");
     idx.glide = require("voice_glide");
@@ -334,6 +343,7 @@ void SynthEngine::prepare(double rate)
     lastLive = false;
     std::fill(overlayExact.begin(), overlayExact.end(), -1.0f);
     overlayLive.store(false, std::memory_order_relaxed);
+    sceneMorphLive.store(false, std::memory_order_relaxed);
     orbitPhase = 0.0;
     driftX = driftY = driftTargetX = driftTargetY = 0.0f;
     driftTimer = 0.0;
@@ -388,8 +398,9 @@ void SynthEngine::setParameterValues(const float* values, int count)
     values = hostValues.data();
     // While the vector overlay is live it owns the scene-managed parameters; setting their targets from the host
     // values here would restart their ramps against the overlay's on every block.
-    const bool overlay = initialised && overlayLive.load(std::memory_order_relaxed) && static_cast<size_t>(vec.on) < n &&
-                         values[vec.on] > 0.5f;
+    const bool overlay = initialised && overlayLive.load(std::memory_order_relaxed) &&
+                         ((static_cast<size_t>(vec.on) < n && values[vec.on] > 0.5f) ||
+                          sceneMorphLive.load(std::memory_order_relaxed));
     for (size_t i = 0; i < n; ++i)
     {
         const auto& def = (*table)[i];
@@ -1792,48 +1803,8 @@ float rand01(std::uint32_t& s)
 }
 } // namespace
 
-void SynthEngine::updateVector(int numSamples)
+void SynthEngine::moveVectorPuck(int numSamples)
 {
-    const bool on = current[static_cast<size_t>(vec.on)] > 0.5f;
-    const SceneSnapshot* scenes = pinnedScenes;
-    std::array<int, 4> slots{};
-    bool anyCorner = false;
-    for (size_t k = 0; k < 4; ++k)
-    {
-        slots[k] = static_cast<int>(current[static_cast<size_t>(vec.corner[k])] + 0.5f);
-        anyCorner = anyCorner || (scenes != nullptr && slots[k] >= 0 && slots[k] < kNumScenes &&
-                                  scenes->filled[static_cast<size_t>(slots[k])]);
-    }
-    const bool live = on && anyCorner;
-    if (!live)
-    {
-        cacheValid = false;
-        if (lastLive)
-        {
-            // Back to the host's values: the smoothers glide there.
-            std::fill(overlayExact.begin(), overlayExact.end(), -1.0f);
-            for (const int i : sceneManaged)
-            {
-                const auto& def = (*table)[static_cast<size_t>(i)];
-                if (vectorExclude != nullptr && vectorExclude[i] != 0)
-                    continue;
-                const float v = std::clamp(hostValues[static_cast<size_t>(i)], def.min, def.max);
-                const float target = def.smoothing == Smoothing::Log ? std::log2(std::max(v, kLogFloor)) : v;
-                if (def.smoothing == Smoothing::None)
-                {
-                    smoothers[static_cast<size_t>(i)].setCurrentAndTargetValue(target);
-                    current[static_cast<size_t>(i)] = v;
-                }
-                else
-                    smoothers[static_cast<size_t>(i)].setTargetValue(target);
-            }
-            lastLive = false;
-            overlayLive.store(false, std::memory_order_relaxed);
-        }
-        vecWasOn = on;
-        return;
-    }
-
     const double seconds = static_cast<double>(numSamples) / sampleRate;
     const auto at = [&](int index) { return current[static_cast<size_t>(index)]; };
     const auto& defs = *table;
@@ -1910,6 +1881,83 @@ void SynthEngine::updateVector(int numSamples)
         vecY = py;
     shownX.store(vecX, std::memory_order_relaxed);
     shownY.store(vecY, std::memory_order_relaxed);
+}
+
+void SynthEngine::updateVector(int numSamples)
+{
+    const bool on = current[static_cast<size_t>(vec.on)] > 0.5f;
+    const SceneSnapshot* scenes = pinnedScenes;
+    std::array<int, 4> slots{};
+    bool anyCorner = false;
+    for (size_t k = 0; k < 4; ++k)
+    {
+        slots[k] = static_cast<int>(current[static_cast<size_t>(vec.corner[k])] + 0.5f);
+        anyCorner = anyCorner || (scenes != nullptr && slots[k] >= 0 && slots[k] < kNumScenes &&
+                                  scenes->filled[static_cast<size_t>(slots[k])]);
+    }
+    // With the vector field off, scene_morph above 0 morphs scene A towards scene B through the same overlay: the
+    // corners become B, A, B, A and the puck sits at (1 - morph, 1), so B weighs morph and A the rest, and a choice
+    // switches to B at morph 0.5 (the heaviest corner wins, ties go to corner 0), as SceneBank::morph does.
+    bool sceneMorph = false;
+    float morph = 0.0f;
+    if (!on && vec.morph >= 0 && vec.sceneA >= 0 && vec.sceneB >= 0 && scenes != nullptr)
+    {
+        morph = current[static_cast<size_t>(vec.morph)];
+        if (vec.targetMorph >= 0)
+        {
+            const auto& d = (*table)[static_cast<size_t>(vec.morph)];
+            morph += genericDest[static_cast<size_t>(vec.targetMorph)] * (d.max - d.min);
+        }
+        morph = std::clamp(morph, 0.0f, 1.0f);
+        const int a = static_cast<int>(current[static_cast<size_t>(vec.sceneA)] + 0.5f);
+        const int b = static_cast<int>(current[static_cast<size_t>(vec.sceneB)] + 0.5f);
+        const auto stored = [scenes](int s)
+        { return s >= 0 && s < kNumScenes && scenes->filled[static_cast<size_t>(s)]; };
+        if (morph > 0.0f && stored(a) && stored(b))
+        {
+            sceneMorph = true;
+            slots = {b, a, b, a};
+        }
+    }
+    const bool live = (on && anyCorner) || sceneMorph;
+    if (!live)
+    {
+        cacheValid = false;
+        if (lastLive)
+        {
+            // Back to the host's values: the smoothers glide there.
+            std::fill(overlayExact.begin(), overlayExact.end(), -1.0f);
+            for (const int i : sceneManaged)
+            {
+                const auto& def = (*table)[static_cast<size_t>(i)];
+                if (vectorExclude != nullptr && vectorExclude[i] != 0)
+                    continue;
+                const float v = std::clamp(hostValues[static_cast<size_t>(i)], def.min, def.max);
+                const float target = def.smoothing == Smoothing::Log ? std::log2(std::max(v, kLogFloor)) : v;
+                if (def.smoothing == Smoothing::None)
+                {
+                    smoothers[static_cast<size_t>(i)].setCurrentAndTargetValue(target);
+                    current[static_cast<size_t>(i)] = v;
+                }
+                else
+                    smoothers[static_cast<size_t>(i)].setTargetValue(target);
+            }
+            lastLive = false;
+            overlayLive.store(false, std::memory_order_relaxed);
+            sceneMorphLive.store(false, std::memory_order_relaxed);
+        }
+        vecWasOn = on;
+        return;
+    }
+
+    const auto& defs = *table;
+    float wx = 1.0f - morph, wy = 1.0f; // the scene morph: corners 0 and 2 hold scene B, 1 and 3 scene A
+    if (!sceneMorph)
+    {
+        moveVectorPuck(numSamples);
+        wx = vecX;
+        wy = vecY;
+    }
 
     const auto apply = [&](int i, float v)
     {
@@ -1927,7 +1975,7 @@ void SynthEngine::updateVector(int numSamples)
             overlayExact[static_cast<size_t>(i)] = def.smoothing == Smoothing::Log ? v : -1.0f;
         }
     };
-    const auto w = vectorWeights(vecX, vecY);
+    const auto w = vectorWeights(wx, wy);
     if (vectorExclude != nullptr)
     {
         // A lock appearing or going away changes which parameters the overlay owns: start over.
@@ -1997,13 +2045,13 @@ void SynthEngine::updateVector(int numSamples)
         cacheValid = true;
         lastWeightX = -1.0f;
     }
-    if (hostDependent.empty() && vecX == lastWeightX && vecY == lastWeightY && lastLive)
+    if (hostDependent.empty() && wx == lastWeightX && wy == lastWeightY && lastLive)
     {
-        vecWasOn = true;
+        vecWasOn = on;
         return; // the puck has not moved: every target is already where the blend puts it
     }
-    lastWeightX = vecX;
-    lastWeightY = vecY;
+    lastWeightX = wx;
+    lastWeightY = wy;
     size_t heaviest = 0;
     int exact = -1;
     for (size_t k = 0; k < 4; ++k)
@@ -2063,7 +2111,8 @@ void SynthEngine::updateVector(int numSamples)
                                   hostValues[static_cast<size_t>(i)]));
     }
     lastLive = true;
-    vecWasOn = true;
+    vecWasOn = on;
+    sceneMorphLive.store(sceneMorph, std::memory_order_relaxed);
     overlayLive.store(true, std::memory_order_relaxed);
 }
 

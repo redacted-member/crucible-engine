@@ -170,6 +170,9 @@ public:
     // ---- Vector field (perf.vector). The morph is an overlay applied at every 32-sample control chunk: while
     // vector_on is set (and a corner scene is stored) the scene-managed parameters follow the four corner scenes
     // instead of the values the host passes, so it renders identically offline and never produces automation.
+    // With vector_on off the same overlay runs the scene A / B morph: while scene_morph is above 0 and the slots that
+    // scene_a and scene_b select are both stored, the scene-managed parameters follow the morph from scene A towards
+    // scene B (floats in normalised space, the others switch to B at 0.5, as SceneBank::morph); at 0 the host values play.
     // The bank supplies the scenes; attach it on the control thread before audio starts, it must outlive rendering.
     void attachScenes(SceneBank* bank) { sceneSource.store(bank, std::memory_order_release); }
     // Parameters flagged here (one entry per parameter, non-zero = excluded) keep the host value while the vector
@@ -183,7 +186,10 @@ public:
         x = shownX.load(std::memory_order_relaxed);
         y = shownY.load(std::memory_order_relaxed);
     }
-    bool vectorActive() const { return overlayLive.load(std::memory_order_relaxed); }
+    bool vectorActive() const
+    {
+        return overlayLive.load(std::memory_order_relaxed) && !sceneMorphLive.load(std::memory_order_relaxed);
+    }
 
     // ---- Clip transport (control thread). Every clip plays from the start (all clips are running by default,
     // which is the behaviour without these calls). Stopping fades the clip's modulation out over 10 ms and parks
@@ -317,6 +323,7 @@ private:
     bool graphVoices() const { return activeProgram != nullptr && activeProgram->voiceKind() != graph::VoiceKind::Classic; }
     void stepSmoothers();
     void updateVector(int numSamples);
+    void moveVectorPuck(int numSamples); // smoothing, orbit and drift of the vector field's puck (vecX, vecY)
     void updateGlobalMod(int numSamples);
     void buildModulators();
     const float* voiceRouteExtra(size_t voice, const Voice& v, int numSamples);
@@ -427,6 +434,7 @@ private:
             orbitShape = -1;
         std::array<int, 4> corner{-1, -1, -1, -1};
         int targetX = -1, targetY = -1; // positions in ParameterMap::modTargets()
+        int sceneA = -1, sceneB = -1, morph = -1, targetMorph = -1; // the scene A / B morph (scene_a, scene_b, scene_morph)
     } vec;
     std::atomic<SceneBank*> sceneSource{nullptr};
     SceneBank* pinnedBank = nullptr;
@@ -479,6 +487,7 @@ private:
     double driftTimer = 0.0;
     std::uint32_t vecRng = 1;
     std::atomic<bool> overlayLive{false};
+    std::atomic<bool> sceneMorphLive{false}; // the overlay is the scene A / B morph, not the vector field
     std::atomic<bool> renderOffline{false}; // ModuleContext::renderOffline points here
     std::atomic<float> shownX{0.5f}, shownY{0.5f};
     bool lastLive = false;

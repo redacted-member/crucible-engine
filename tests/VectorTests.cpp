@@ -278,6 +278,54 @@ public:
             expect(render(true) == render(false));
         }
 
+        beginTest("scene_morph morphs scene A towards scene B as an overlay; 0 plays the host values");
+        {
+            Engine e;
+            e.prepare(kRate, 128);
+            const Corners c;
+            fillScenes(e, c); // scenes 0..3; host values: cutoff 5000, table 0
+            e.setParam("scene_a", 0.0f);
+            e.setParam("scene_b", 3.0f);
+            run(e, 40);
+            expectWithinAbsoluteError(e.modulatedValue("filter_cutoff"), 5000.0f, 0.01f);
+            for (const float t : {0.25f, 0.5f, 0.8f, 1.0f})
+            {
+                e.setParam("scene_morph", t);
+                run(e, 120);
+                std::vector<float> ref = e.getAllParams();
+                expect(e.scenes().morph(0, 3, t, ref));
+                expectWithinAbsoluteError(e.modulatedValue("filter_cutoff"),
+                                          ref[static_cast<size_t>(ParameterMap::indexOf("filter_cutoff"))], 1.0f);
+                expectWithinAbsoluteError(e.modulatedValue("osc1_level"),
+                                          ref[static_cast<size_t>(ParameterMap::indexOf("osc1_level"))], 1.0e-4f);
+                expectEquals(e.modulatedValue("osc1_table"), t < 0.5f ? c.table[0] : c.table[3]);
+            }
+            expectEquals(e.modulatedValue("filter_cutoff"), c.cutoff[3]);
+            expectEquals(e.getParam("filter_cutoff"), 5000.0f, "the overlay writes no parameter (no automation)");
+            e.setParam("scene_morph", 0.0f);
+            run(e, 120);
+            expectWithinAbsoluteError(e.modulatedValue("filter_cutoff"), 5000.0f, 0.01f);
+            expectEquals(e.modulatedValue("osc1_table"), 0.0f);
+            // An empty scene B: no morph.
+            e.scenes().clear(3);
+            e.setParam("scene_morph", 0.7f);
+            run(e, 120);
+            expectWithinAbsoluteError(e.modulatedValue("filter_cutoff"), 5000.0f, 0.01f);
+            // The vector field, when on, wins over the scene morph.
+            e.setParam("scene_b", 1.0f);
+            e.setParam("vector_smooth", 0.0f);
+            e.setParam("vector_on", 1.0f);
+            puck(e, 0.0f, 0.0f); // corner C: scene 2
+            run(e, 120);
+            expectEquals(e.modulatedValue("filter_cutoff"), c.cutoff[2]);
+            e.setParam("vector_on", 0.0f);
+            run(e, 120);
+            std::vector<float> ref = e.getAllParams();
+            expect(e.scenes().morph(0, 1, 0.7f, ref));
+            expectWithinAbsoluteError(e.modulatedValue("filter_cutoff"),
+                                      ref[static_cast<size_t>(ParameterMap::indexOf("filter_cutoff"))], 1.0f);
+        }
+
         beginTest("the puck is a modulation target: a route moves it");
         {
             Engine e;
