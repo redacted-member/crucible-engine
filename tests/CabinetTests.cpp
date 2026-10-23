@@ -819,12 +819,24 @@ private:
         expect(probe != nullptr, "probe capability");
         if (probe == nullptr)
             return;
-        probe->holdBuilder(true); // the builder takes 300 ms: the blocks must not wait for it
+        // The builder is released after 300 ms by a timer: a block that waited for it would take that long (and a
+        // regression fails here instead of hanging).
+        probe->holdBuilder(true);
+        std::thread releaser([probe] { std::this_thread::sleep_for(std::chrono::milliseconds(300)); probe->holdBuilder(false); });
         Random rng(9);
         Floats in(256);
         for (auto& v : in)
             v = static_cast<float>(0.3 * rng.gaussian());
-        double worstMs = 0.0, diff = 0.0, level = 0.0;
+        // High-frequency energy (first difference): the dry input keeps it, a speaker cabinet takes most of it away.
+        const auto hfEnergy = [](const Floats& x)
+        {
+            double e = 0.0;
+            for (size_t i = 1; i < x.size(); ++i)
+                e += (x[i] - x[i - 1]) * (x[i] - x[i - 1]);
+            return e;
+        };
+        const double dryHf = hfEnergy(in);
+        double worstMs = 0.0, passHf = 0.0;
         for (int block = 0; block < 20; ++block)
         {
             Floats l = in, r = in;
@@ -832,24 +844,18 @@ private:
             h.run(l.data(), r.data(), 256);
             worstMs = std::max(worstMs, std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count());
             if (block >= 4) // after the cut filters have settled
-                for (size_t i = 0; i < l.size(); ++i)
-                {
-                    diff += (l[i] - in[i]) * (l[i] - in[i]);
-                    level += in[i] * in[i];
-                }
+                passHf += hfEnergy(l) / 16.0;
         }
-        probe->holdBuilder(false);
+        releaser.join();
         expect(worstMs < 50.0, "the slowest block took " + String(worstMs) + " ms while the builder was held");
-        expect(diff < 0.05 * level, "until the kernel is ready the input passes (through the cuts only)");
+        expect(passHf > 0.7 * dryHf && passHf < 1.4 * dryHf,
+               "until the kernel is ready the input passes (high-frequency energy ratio " + String(passHf / dryHf) + ")");
         bool plays = false;
         for (int attempt = 0; attempt < 400 && !plays; ++attempt)
         {
             Floats l = in, r = in;
             h.run(l.data(), r.data(), 256);
-            double d = 0.0;
-            for (size_t i = 0; i < l.size(); ++i)
-                d += (l[i] - in[i]) * (l[i] - in[i]);
-            plays = d > 0.2 * level / 16.0;
+            plays = hfEnergy(l) < 0.25 * dryHf;
             std::this_thread::sleep_for(std::chrono::milliseconds(2));
         }
         expect(plays, "the cabinet plays once the builder is released");
