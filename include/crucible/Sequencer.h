@@ -102,6 +102,11 @@ struct SeqSettings
     int transpose = 0;
     int pattern = 0;
     int chain = 0; // see seqChainSlots()
+    // Keys trigger (seq_trigger = Keys): the pattern runs only while keysHeld, restarting from step 1 each time the first
+    // key goes down; keyTranspose (the newest held key - 60) adds to transpose.
+    bool keyTrigger = false;
+    bool keysHeld = false;
+    int keyTranspose = 0;
 };
 
 // Beats (quarter notes) per step for the rate choices 1/16, 1/8, 1/32, 1/16T, 1/8T, 1/32T.

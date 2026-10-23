@@ -189,6 +189,7 @@ private:
             arpTranspose, arpVelMode, arpVel, arpAccent, arpGrid, arpGridLength, arpGridDir;
         int mpeOn;
         int keyMode, keyRoot, keyScale, keyMask, keyTie, keySync;
+        int seqTrigger;
     } idx{};
     int startKey(NoteQuantiser& q, int note, float velocity, int channel);
     int stopKey(NoteQuantiser& q, int note);
@@ -206,6 +207,9 @@ private:
     bool recording = false;
     bool mpeActive = false;
     bool seqWasActive = false;
+    // Keys held for the sequencer's Keys trigger, oldest first (the newest sets the transposition); audio thread only.
+    std::array<std::uint8_t, 16> seqKeys{};
+    int seqKeyCount = 0;
 };
 
 } // namespace crucible

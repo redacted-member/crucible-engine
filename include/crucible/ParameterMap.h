@@ -213,7 +213,7 @@ struct ParamDef
     // This is how a parameter is added to a module that is already frozen in tests/golden/param_order.txt without moving
     // any existing index. Rule after v1: a new parameter on an existing module (or a new module whose parameters are all
     // appended) takes the NEXT unused sequence; never reuse a sequence and never renumber one. Sequences in use:
-    //   1 fx.crusher note tracking, 2 fx.saturator pre / post filter, 3 fx.cabinet.
+    //   1 fx.crusher note tracking, 2 fx.saturator pre / post filter, 3 fx.cabinet, 4 seq.step seq_trigger.
     // Use together with `since` and a module version bump.
     int appended = 0;
     // A matrix destination selector: its choices are filled with modDestNames() when the map is built.

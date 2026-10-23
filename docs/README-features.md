@@ -259,7 +259,10 @@ still feel played.
 Twelve pattern slots. Each step has a note, a velocity, a gate length, an octave, a probability, ties and ratchets.
 Patterns run from sixteen steps per bar to sixteen bars, so a pattern can be as long as 256 steps. Four parameter locks
 per step let a step change a sound (a filter setting, a level) while it plays. Patterns can chain, run forward or in
-other directions, and sync to the host or an internal clock with a swing setting.
+other directions, and sync to the host or an internal clock with a swing setting. **Seq Trigger** decides when a pattern
+plays: Free (it runs whenever Seq Run is on) or Keys (it plays only while keys are held, starting from step 1 at the first
+key and transposed by the newest key relative to C4; the keys themselves do not sound, as with the arpeggiator). Keys is the
+choice for a preset that must stay silent until it is played.
 
 ### 4.9 Key lock and scales
 

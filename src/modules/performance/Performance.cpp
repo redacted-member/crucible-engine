@@ -78,7 +78,14 @@ ModuleDescriptor scenesAndSequencer()
         add(params::integer("seq_length", "Seq Length", "seq_2", 1, 16, 1, "bars"));
         add(params::choice("seq_chain", "Seq Chain", "seq_2", {"Off", "1-2", "1-3", "1-4", "1-6", "1-8", "1-12"}, 0));
         add(params::toggle("seq_rec", "Seq Record", "seq_2", false));
+        // Version 2: Keys plays the pattern only while keys are held (from step 1 at the first key, transposed by the
+        // newest held key relative to C4); the keys themselves do not sound. Appended (sequence 4): the frozen order holds.
+        auto trigger = params::choice("seq_trigger", "Seq Trigger", "seq_2", {"Free", "Keys"}, 0);
+        trigger.since = 2;
+        trigger.appended = 4;
+        add(trigger);
     }
+    d.version = 2;
 
     return d;
 }

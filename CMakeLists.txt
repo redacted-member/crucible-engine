@@ -309,6 +309,7 @@ if(CRUCIBLE_ENGINE_BUILD_TESTS)
         tests/RcAttackCurveTests.cpp
         tests/SmootherSettleTests.cpp
         tests/CrusherTrackTests.cpp
+        tests/SeqTriggerTests.cpp
         tests/SaturatorFilterTests.cpp)
     target_include_directories(crucible_engine_tests PRIVATE tests)
     # Vendored MIT tuning-library, used only as the oracle in tests/TuningOracleTests.cpp.

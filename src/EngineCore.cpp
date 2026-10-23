@@ -27,7 +27,7 @@ EngineCore::EngineCore(const EngineConfig& config) : synth(config)
            need("arp_swing"),  need("arp_ratchet"),   need("arp_transpose"),   need("arp_vel_mode"), need("arp_vel"),
            need("arp_accent"), need("arp_grid"),      need("arp_grid_length"), need("arp_grid_dir"), need("mpe_on"),
            need("key_mode"),   need("key_root"),      need("key_scale"),       need("key_mask"),     need("key_tie"),
-           need("key_sync")};
+           need("key_sync"),   need("seq_trigger")};
     writerId = static_cast<std::uint64_t>(reinterpret_cast<std::uintptr_t>(this));
     const auto n = model.params().size();
     working.assign(n, 0.0f);
@@ -349,8 +349,26 @@ void EngineCore::process(float* left, float* right, int numSamples, const float*
     int count = 0;
     const bool arpOn = values[idx.arpOn] > 0.5f;
     int arpCount = 0;
+    // Sequencer Keys trigger: keyboard notes start, transpose and stop the pattern instead of playing voices (the
+    // arpeggiator, when on, takes them first).
+    const bool seqKeyTrigger = !arpOn && values[idx.run] > 0.5f && values[idx.seqTrigger] > 0.5f;
+    if (!seqKeyTrigger)
+        seqKeyCount = 0;
     const auto add = [&](int pos, Event::Kind kind, int a, float f, int channel = -1)
     {
+        if (seqKeyTrigger && (kind == Event::Kind::NoteOn || kind == Event::Kind::NoteOff || kind == Event::Kind::AllNotesOff ||
+                              kind == Event::Kind::KillAll))
+        {
+            int kept = 0; // the key leaves the list (a repeated note-on moves it to the newest place)
+            for (int i = 0; i < seqKeyCount; ++i)
+                if (kind != Event::Kind::AllNotesOff && kind != Event::Kind::KillAll && seqKeys[static_cast<size_t>(i)] != a)
+                    seqKeys[static_cast<size_t>(kept++)] = seqKeys[static_cast<size_t>(i)];
+            seqKeyCount = kept;
+            if (kind == Event::Kind::NoteOn && seqKeyCount < static_cast<int>(seqKeys.size()))
+                seqKeys[static_cast<size_t>(seqKeyCount++)] = static_cast<std::uint8_t>(std::clamp(a, 0, 127));
+            if (kind == Event::Kind::NoteOn || kind == Event::Kind::NoteOff)
+                return; // panic also goes on to the voices below
+        }
         // With the arpeggiator on, keyboard notes feed it instead of the voices (they are still step-recorded).
         if (arpOn && (kind == Event::Kind::NoteOn || kind == Event::Kind::NoteOff))
         {
@@ -494,6 +512,9 @@ void EngineCore::process(float* left, float* right, int numSamples, const float*
     ss.transpose = static_cast<int>(values[idx.transpose]);
     ss.pattern = static_cast<int>(values[idx.pattern]);
     ss.chain = static_cast<int>(values[idx.chain]);
+    ss.keyTrigger = values[idx.seqTrigger] > 0.5f;
+    ss.keysHeld = seqKeyCount > 0;
+    ss.keyTranspose = seqKeyCount > 0 ? static_cast<int>(seqKeys[static_cast<size_t>(seqKeyCount - 1)]) - 60 : 0;
     const SeqBank* bank = seqStore.acquire();
     const int seqCount = seq.process(*bank, ss, host, numSamples, seqEvents.data(), static_cast<int>(seqEvents.size()));
     seqStore.release();

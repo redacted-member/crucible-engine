@@ -298,7 +298,7 @@ void Sequencer::handleStep(const SeqBank& bank, const SeqSettings& s, std::int64
     if (!step.on || !passes)
         return;
 
-    const int note = std::clamp(static_cast<int>(step.note) + s.transpose, 0, 127);
+    const int note = std::clamp(static_cast<int>(step.note) + s.transpose + (s.keyTrigger ? s.keyTranspose : 0), 0, 127);
     const int ratchet = std::clamp(static_cast<int>(step.ratchet), 1, 4);
     const double sub = stepBeats / ratchet;
     const float vel = static_cast<float>(step.velocity) / 127.0f;
@@ -394,7 +394,8 @@ int Sequencer::process(const SeqBank& bank, const SeqSettings& s, const SeqHostT
 {
     // A host position that is not finite or absurdly large cannot be followed (and would overflow the step index).
     const bool positionOk = !s.hostSync || (host.hasPpq && std::isfinite(host.ppq) && std::abs(host.ppq) < kMaxPositionBeats);
-    const bool shouldRun = s.run && (!s.hostSync || (host.playing && host.hasPpq && positionOk));
+    const bool shouldRun =
+        s.run && (!s.keyTrigger || s.keysHeld) && (!s.hostSync || (host.playing && host.hasPpq && positionOk));
     if (!shouldRun)
     {
         int n = 0;
