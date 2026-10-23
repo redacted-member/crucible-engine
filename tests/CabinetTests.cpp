@@ -297,7 +297,8 @@ public:
         resetAndBypass();
         realTime();
         determinism();
-        firstKernelAtStandardQuality();
+        firstKernelOffline();
+        firstKernelInRealTime();
         allocations();
         staleSets();
         retireNeverLeaks();
@@ -687,7 +688,7 @@ private:
         expect(probe != nullptr, "probe capability");
         if (probe == nullptr)
             return;
-        h.settle(0.3); // the first 48 kHz set is built, primed and playing (the first build is waited for)
+        h.settle(0.3); // the first 48 kHz set is built, primed and playing
         probe->holdBuilder(true);
         h.p("cabinet", 4.0f);
         h.settle(0.2); // posts the build of the new cabinet once the control has rested; the builder finishes, waits to publish
@@ -751,14 +752,14 @@ private:
         expectEquals(CabinetProbe::liveSets(), base, "every retired set was freed");
     }
 
-    void firstKernelAtStandardQuality()
+    void firstKernelOffline()
     {
-        beginTest("fx.cabinet: the render after prepare does not depend on when the first kernel is built (any quality)");
+        beginTest("fx.cabinet: an offline (High quality) render after prepare does not depend on when the first kernel is built");
         // delayMs > 0: the builder is held and released after that many milliseconds. The blocks are paced so that the render lasts longer than the delay.
         const auto render = [this](int delayMs)
         {
             kRate = 48000.0;
-            Rack h(Quality::Standard);
+            Rack h(Quality::High);
             h.p("mix", 1.0f);
             h.p("cabinet", 3.0f);
             auto* probe = h.rack.findCapability<CabinetProbe>("fx.cabinet");
@@ -805,6 +806,53 @@ private:
             tail += static_cast<double>(quick[i] - dry[i]) * (quick[i] - dry[i]) * (128.0 / 4096.0);
         expect(tail > 2.0 * head, "the cabinet plays by the end of the render");
         expect(worst == 0.0, "a builder that is 120 ms late changes the output by " + String(worst));
+    }
+
+    void firstKernelInRealTime()
+    {
+        beginTest("fx.cabinet: in real time (Standard quality) a late first kernel never stalls the audio thread");
+        kRate = 48000.0;
+        Rack h(Quality::Standard);
+        h.p("mix", 1.0f);
+        h.p("cabinet", 3.0f);
+        auto* probe = h.rack.findCapability<CabinetProbe>("fx.cabinet");
+        expect(probe != nullptr, "probe capability");
+        if (probe == nullptr)
+            return;
+        probe->holdBuilder(true); // the builder takes 300 ms: the blocks must not wait for it
+        Random rng(9);
+        Floats in(256);
+        for (auto& v : in)
+            v = static_cast<float>(0.3 * rng.gaussian());
+        double worstMs = 0.0, diff = 0.0, level = 0.0;
+        for (int block = 0; block < 20; ++block)
+        {
+            Floats l = in, r = in;
+            const auto t0 = std::chrono::steady_clock::now();
+            h.run(l.data(), r.data(), 256);
+            worstMs = std::max(worstMs, std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count());
+            if (block >= 4) // after the cut filters have settled
+                for (size_t i = 0; i < l.size(); ++i)
+                {
+                    diff += (l[i] - in[i]) * (l[i] - in[i]);
+                    level += in[i] * in[i];
+                }
+        }
+        probe->holdBuilder(false);
+        expect(worstMs < 50.0, "the slowest block took " + String(worstMs) + " ms while the builder was held");
+        expect(diff < 0.05 * level, "until the kernel is ready the input passes (through the cuts only)");
+        bool plays = false;
+        for (int attempt = 0; attempt < 400 && !plays; ++attempt)
+        {
+            Floats l = in, r = in;
+            h.run(l.data(), r.data(), 256);
+            double d = 0.0;
+            for (size_t i = 0; i < l.size(); ++i)
+                d += (l[i] - in[i]) * (l[i] - in[i]);
+            plays = d > 0.2 * level / 16.0;
+            std::this_thread::sleep_for(std::chrono::milliseconds(2));
+        }
+        expect(plays, "the cabinet plays once the builder is released");
     }
 
     void determinism()

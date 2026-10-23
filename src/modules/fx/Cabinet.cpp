@@ -12,9 +12,10 @@
 // come back through a one-slot mailbox (atomic exchange); the audio thread runs a new set on the live input until its
 // convolver holds a whole kernel's worth of signal (output discarded), then crossfades from the set in use to it, and hands
 // retired sets back to the builder through a lock-free ring, which frees them. The audio thread allocates nothing and takes
-// no lock. At High quality (offline rendering), while the host renders offline (Engine::setRenderOffline), and for the
-// first set after prepare() at any quality, the audio thread waits for the builder after posting, so a render does not
-// depend on thread timing. Where there are no background threads (LinearPhaseWorker::threadless()) the builder runs inside
+// no lock. At High quality (offline rendering) and while the host renders offline (Engine::setRenderOffline) the audio
+// thread waits for the builder after posting, so a render does not depend on thread timing. In real time it never waits,
+// not even for the first set: building one takes up to a few hundred milliseconds, which would be an audible dropout.
+// Where there are no background threads (LinearPhaseWorker::threadless()) the builder runs inside
 // LinearPhaseWorker::pump(), called by Engine::service() on the control side.
 //
 // Until the first set is ready the module passes its input through; a set fades in over 40 ms once primed.
@@ -356,12 +357,10 @@ private:
             Request post = candidate;
             post.serial = postedRequest.serial + 1;
             // Offline the post must not be skipped when the builder holds the slot, or the block at which a change takes
-            // effect would depend on thread timing.
-            // The first set after prepare() (or a rate change) is waited for at every quality: it takes a few milliseconds
-            // once, and the output of a render then does not depend on when the builder finishes.
+            // effect would depend on thread timing. In real time nothing waits: the input passes until the set is ready.
             const bool offline =
                 highQuality || (renderOffline != nullptr && renderOffline->load(std::memory_order_relaxed));
-            const bool wait = (offline || first) && !crucible::fx::LinearPhaseWorker::threadless();
+            const bool wait = offline && !crucible::fx::LinearPhaseWorker::threadless();
             bool accepted = requests.tryPost(post);
             while (!accepted && wait)
             {
