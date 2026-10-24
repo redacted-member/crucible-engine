@@ -353,6 +353,7 @@ public:
     void prepare(double rate, int) override { sr = rate; }
     bool usesVoiceCard() const override { return true; }
     bool supportsAudioRate() const override { return true; }
+    bool continuesOnRetrigger() const override { return true; }
 
     void noteOn(const OscNoteInfo& info) override
     {

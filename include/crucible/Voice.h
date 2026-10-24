@@ -246,6 +246,9 @@ public:
                          float detuneSemitones = 0.0f);
     // True while a note waits for this voice's fade-out to end.
     bool hasPendingStart() const { return pending.on; }
+    // True when every oscillator this voice has started can run on through a retrigger (see
+    // OscillatorInstance::continuesOnRetrigger); otherwise a retrigger of a sounding voice fades it out first.
+    bool continuesOnRetrigger() const;
     void glideTo(int midiNote);
     void noteOff();
     void kill();

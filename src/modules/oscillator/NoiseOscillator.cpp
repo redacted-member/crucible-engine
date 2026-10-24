@@ -27,6 +27,7 @@ public:
 
     void prepare(double rate, int) override { sr = rate; }
 
+    bool continuesOnRetrigger() const override { return true; }
     void noteOn(const OscNoteInfo& info) override
     {
         rng.state = (info.seed * 3266489917U) | 1U;

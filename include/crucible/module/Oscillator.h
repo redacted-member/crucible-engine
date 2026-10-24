@@ -121,6 +121,10 @@ public:
     virtual bool usesVoiceCard() const { return false; }
     // True when render() honours OscRender::pitchMod, fmAmountMod and widthMod sample by sample.
     virtual bool supportsAudioRate() const { return false; }
+    // True when the waveform may simply run on when a voice that still sounds is struck again (mono / legato retrigger):
+    // the voice then skips noteOn() and the note continues without a step. False (the default) for oscillators that need
+    // a fresh start, such as an exciter or a sample playhead: the voice fades out over about 5 ms, then starts the note.
+    virtual bool continuesOnRetrigger() const { return false; }
     virtual void render(const OscRender& r) = 0;
     // Any thread: appends this instance's visual state (reads atomics written by the audio thread).
     virtual void visual(OscVisual& out) const {}

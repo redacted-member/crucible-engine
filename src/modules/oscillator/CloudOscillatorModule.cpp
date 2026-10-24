@@ -28,6 +28,7 @@ public:
     }
 
     void prepare(double rate, int) override { osc.prepare(rate); }
+    bool continuesOnRetrigger() const override { return true; }
     void noteOn(const OscNoteInfo& info) override { osc.noteOn(0.0f, info.seed); }
     void noteOff() override {}
 

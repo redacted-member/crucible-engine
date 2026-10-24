@@ -721,7 +721,12 @@ void SynthEngine::startNote(int note, float velocity, bool overlap)
         else
         {
             const float from = v.isActive() && glides ? static_cast<float>(v.note()) : startPitch;
-            v.noteOn(note, velocity, params, ++noteCounter, from);
+            // A voice that still sounds restarts without a step: continuous oscillators run on under the envelope's
+            // restart; one that needs a fresh start (exciter, sample playhead) fades out over about 5 ms first.
+            if (v.isActive() && !v.isFading() && !v.continuesOnRetrigger())
+                v.noteOnAfterFade(note, velocity, params, ++noteCounter, from, 0.0f);
+            else
+                v.noteOn(note, velocity, params, ++noteCounter, from);
             claim(&v, from);
         }
     }

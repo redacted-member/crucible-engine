@@ -45,6 +45,7 @@ public:
         pulse = sp.bind("sub_pulse");
     }
 
+    bool continuesOnRetrigger() const override { return true; }
     void noteOn(const OscNoteInfo&) override { phase = 0.0f; }
 
     void render(const OscRender& r) override

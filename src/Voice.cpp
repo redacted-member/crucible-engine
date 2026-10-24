@@ -890,7 +890,10 @@ void Voice::noteOn(int note, float vel, const VoiceParams& params, std::uint64_t
     noteSeed = static_cast<std::uint32_t>(age * 2246822519ULL + static_cast<std::uint64_t>(note) * 3266489917ULL) ^
                params.seed ^ 0x9e3779b9U;
     noteTime = 0.0;
-    startedType.fill(-1);
+    // Module oscillators run on through a retrigger as the built-in ones do (only continuous ones get here, see
+    // continuesOnRetrigger()); a fresh voice starts them anew.
+    if (!keepOsc)
+        startedType.fill(-1);
 
     if (!active)
     {
@@ -957,6 +960,20 @@ void Voice::fadeOut()
         return;
     fading = true;
     fadeDone = 0;
+}
+
+bool Voice::continuesOnRetrigger() const
+{
+    for (int slot = 0; slot < kMaxOscSlots; ++slot)
+    {
+        const int type = startedType[static_cast<size_t>(slot)];
+        if (type < 1)
+            continue; // not started, or the built-in wavetable (its state is kept)
+        const OscillatorInstance* inst = oscillatorInstance(slot, type);
+        if (inst != nullptr && !inst->continuesOnRetrigger())
+            return false;
+    }
+    return true;
 }
 
 void Voice::noteOnAfterFade(int note, float vel, const VoiceParams& params, std::uint64_t age, float startNote,
