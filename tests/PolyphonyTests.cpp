@@ -75,6 +75,53 @@ public:
     {
         const ScopedFlushDenormals noDenormals;
 
+        beginTest("mono and legato: a retrigger of a sounding voice is click free for every oscillator type");
+        {
+            // The note-off and the next note-on arrive at the same sample (a release and the next strike together).
+            // Continuous oscillators run on under the envelope's restart; the others fade the voice for about 5 ms first.
+            for (const float mode : {1.0f, 2.0f})
+                for (int type = 0; type < 9; ++type)
+                {
+                    auto v = sinePatch();
+                    setValue(v, "osc1_type", static_cast<float>(type));
+                    setValue(v, "voice_mode", mode);
+                    setValue(v, "amp_attack", 0.005f);
+                    CRUCIBLE_HEAP(SynthEngine, engine);
+                    prepare(engine, v);
+                    std::vector<float> out, l(32), r(32);
+                    const int at = 24000 + 13, total = 36000;
+                    engine.noteOn(48, 1.0f);
+                    for (int pos = 0; pos < total; pos += 32)
+                    {
+                        if (at >= pos && at < pos + 32)
+                        {
+                            engine.render(l.data(), r.data(), at - pos);
+                            out.insert(out.end(), l.begin(), l.begin() + (at - pos));
+                            engine.noteOff(48);
+                            engine.noteOn(48, 0.9f);
+                            engine.render(l.data(), r.data(), pos + 32 - at);
+                            out.insert(out.end(), l.begin(), l.begin() + (pos + 32 - at));
+                            continue;
+                        }
+                        engine.render(l.data(), r.data(), 32);
+                        out.insert(out.end(), l.begin(), l.end());
+                    }
+                    if (rms(out, 12000, 24000) < 1.0e-3)
+                        continue; // this type needs content (a sample, a cloud) and is silent here
+                    std::vector<float> steps;
+                    for (size_t i = 12001; i < 24000; ++i)
+                        steps.push_back(std::abs(out[i] - out[i - 1]));
+                    std::sort(steps.begin(), steps.end());
+                    const float usual = steps[steps.size() * 995 / 1000];
+                    float worst = 0.0f;
+                    for (size_t i = static_cast<size_t>(at) - 64; i < static_cast<size_t>(at) + 2400; ++i)
+                        worst = std::max(worst, std::abs(out[i] - out[i - 1]));
+                    expect(worst < 3.0f * usual + 1.0e-4f, "voice mode " + String(mode, 0) + ", oscillator type " +
+                                                               String(type) + ": step " + String(worst, 4) +
+                                                               " at the retrigger against " + String(usual, 4) + " usually");
+                }
+        }
+
         beginTest("two notes of the same pitch never cancel, whatever the retrigger offset");
         {
             for (const char* name : {"sine", "saw", "default"})

@@ -845,6 +845,16 @@ void Voice::noteOn(int note, float vel, const VoiceParams& params, std::uint64_t
     midiNote = note;
     curNote = startNote;
     velocity = std::clamp(vel, 0.0f, 1.0f);
+    if (keepOsc)
+    {
+        velGainRamp = std::max(1, static_cast<int>(0.002 * sampleRate));
+        velGainStep = (velocity - velGain) / static_cast<float>(velGainRamp);
+    }
+    else
+    {
+        velGain = velocity;
+        velGainRamp = 0;
+    }
     noteAge = age;
     rng.state = (static_cast<std::uint32_t>(age * 2654435761U + static_cast<std::uint64_t>(note)) ^ params.seed) | 1U;
 
@@ -2243,7 +2253,9 @@ void Voice::endChunk(float* left, float* right)
     const float* const ampBuf = chunk.hasAmpMod ? extra->ampBuf : nullptr;
     for (int i = 0; i < chunk.samples; ++i)
     {
-        float ampLevel = env[0].tick() * velocity * chunk.ampMod;
+        if (velGainRamp > 0) [[unlikely]]
+            velGain = --velGainRamp > 0 ? velGain + velGainStep : velocity;
+        float ampLevel = env[0].tick() * velGain * chunk.ampMod;
         if (ampBuf != nullptr) [[unlikely]]
             ampLevel *= ampBuf[i];
         if (cardGain != 1.0f)

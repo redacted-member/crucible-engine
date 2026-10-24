@@ -404,6 +404,10 @@ private:
     int midiNote = 60;
     float curNote = 60.0f;
     float velocity = 1.0f;
+    // The velocity gain the output is multiplied by: a retrigger of a sounding voice ramps it to the new velocity over
+    // about 2 ms instead of stepping (velGainRamp samples left, velGainStep per sample).
+    float velGain = 1.0f, velGainStep = 0.0f;
+    int velGainRamp = 0;
     std::uint64_t noteAge = 0;
     std::array<OscState, kMaxOscSlots> osc;
     // Oscillator module instances, [slot * oscTypes + type]; type 0 (wavetable) has none.
